@@ -1,20 +1,9 @@
 # Data files
-pamodpy/data/Bay_Area_Synthetic_Network/
-pamodpy/data/SF_5/143230_SF_5zones_weekday_hourly_passthroughs
-pamodpy/data/SF_5/Justin-Luke---Academic_SF_spectral_clusters_with_passthroughs_ZoneSet
-pamodpy/data/SF_5/143230_SF_5zones_weekday_hourly_passthroughs_od_trip_all.csv
-data/SF_5/*.npy
-data/SF_25/*.npy
-data/SF2_25/*.npy
-pamodpy/data/SF_190/Justin-Luke---Academic_SF-TAZ-with-added-boundary-pass-through_ZoneSet
-pamodpy/data/SF_190/92009_SF_all_weekday_each_hour_added_pass_od_trip_all.csv
-data/SF_190/*.npy
+pamodpy/data/SF_25/*.npy
+pamodpy/data/SF_190/*.npy
 
-# Archived results
-pamodpy/results/SF_190/old_results
-pamodpy/results/SF_190/saved_results
-pamodpy/results/SF_25/archived
-pamodpy/results/SF_5/archived
+# Results
+results/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
