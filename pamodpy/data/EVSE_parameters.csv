@@ -1,0 +1,5 @@
+name,manufacturer,model,year,rate_AC,rate_DC,evse_unit_cost,capital_10unit_cost
+AC 7.7kW,NA,NA,NA,7.7,0,2500,35000
+DC 22.5kW,NA,NA,NA,0,22.5,10000,47000
+DC 50kW,NA,NA,NA,0,50,27900,56800
+DC 150kW,NA,NA,NA,0,150,87800,176300

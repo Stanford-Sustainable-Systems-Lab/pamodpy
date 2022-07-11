@@ -1,0 +1,16 @@
+name: pamod
+channels:
+  - defaults
+  - conda-forge
+  - gurobi
+dependencies:
+  - python=3.9
+  - geopandas
+  - matplotlib
+  - networkx=2.6.3
+  - gurobi
+  - pathos
+  - jupyter
+  - pyarrow
+  - requests
+  - pyomo
