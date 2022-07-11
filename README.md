@@ -22,7 +22,7 @@ copies or substantial portions of the pamod-py.
 * The above instructions were adapted from this article: https://sproul.xyz/blog/posts/gurobi-academic-validation.html
 
 ## References
-If you use pamod-py in an academic context, please site the following article:
+If you use pamod-py in an academic context, please acknowledge this and cite the following article:
 J. Luke, M. Salazar, R. Rajagopal and M. Pavone, "Joint Optimization of Autonomous Electric Vehicle Fleet Operations and Charging Station Siting," 2021 IEEE International Intelligent Transportation Systems Conference (ITSC), 2021, pp. 3340-3347, doi: 10.1109/ITSC48978.2021.9565089.
 https://arxiv.org/abs/2107.00165
 
