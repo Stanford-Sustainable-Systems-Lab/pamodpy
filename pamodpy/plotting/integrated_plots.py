@@ -245,13 +245,13 @@ def infra_cap_loc():
     cap_model3 = np.zeros(len(exp_model3.locations_excl_passthrough))
     cap_leafS_baseline = np.zeros(len(exp_leafS_baseline.locations_excl_passthrough))
 
-    for evse_idx, evse in enumerate(exp_spring.charge_rate):
+    for evse_idx, evse in enumerate(exp_spring.EVSEs):
         cap_spring += exp_spring.UMax_charge[:, evse_idx] * evse.rate
-    for evse_idx, evse in enumerate(exp_leafS.charge_rate):
+    for evse_idx, evse in enumerate(exp_leafS.EVSEs):
         cap_leafS += exp_leafS.UMax_charge[:, evse_idx] * evse.rate
-    for evse_idx, evse in enumerate(exp_model3.charge_rate):
+    for evse_idx, evse in enumerate(exp_model3.EVSEs):
         cap_model3 += exp_model3.UMax_charge[:, evse_idx] * evse.rate
-    for evse_idx, evse in enumerate(exp_leafS_baseline.charge_rate):
+    for evse_idx, evse in enumerate(exp_leafS_baseline.EVSEs):
         cap_leafS_baseline += exp_leafS_baseline.UMax_charge[:, evse_idx] * evse.rate
 
     cap_spring.sort()

@@ -129,9 +129,9 @@ def PAMoD_optimization_gurobi(experiment):
             for vehicle_idx, PAMoDVehicle in enumerate(experiment.PAMoDVehicles):
                 U_list.append(m.addMVar(shape=PAMoDVehicle.E, lb=0.0, name="U_{}".format(vehicle_idx)))
             if experiment.optimize_infra:
-                UMax_charge = m.addMVar(shape=(len(experiment.locations_excl_passthrough), len(experiment.charge_rate)), lb=0.0, name="UMax_charge")
+                UMax_charge = m.addMVar(shape=(len(experiment.locations_excl_passthrough), len(experiment.EVSEs)), lb=0.0, name="UMax_charge")
                 if experiment.optimize_infra_mip:
-                    B = m.addMVar(shape=(len(experiment.locations_excl_passthrough), len(experiment.charge_rate)), vtype='B', name="B")
+                    B = m.addMVar(shape=(len(experiment.locations_excl_passthrough), len(experiment.EVSEs)), vtype='B', name="B")
             else:
                 UMax_charge = experiment.UMax_charge
             PMax = m.addMVar(shape=(len(experiment.locations_excl_passthrough), 1), lb=0.0, name="PMax")
