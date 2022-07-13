@@ -31,24 +31,30 @@ import sys
 import networkx as nx
 
 from .Experiment import Experiment, SF_5, SF_25, SF_190
+from ..utils.load_experiment import config
 from ..utils.constants import *
 from ..plotting.plot_results import plot_PAMoDFleet_results, plot_animiation
 from ..algorithms.PAMoD_optimization_gurobi import PAMoD_optimization_gurobi
+from ..algorithms.PAMoD_optimization_pyomo import PAMoD_optimization_pyomo
 from ..Station import Station
 from ..EVSE import EVSE
 
 class MetaPAMoDFleet(type):
     def __new__(cls, name, bases, dct):
-        if "SF_25" == "SF_25":
+        if config.current_experiment_region == "SF_5":
+            bases = (SF_5,)
+        elif config.current_experiment_region == "SF_25":
             bases = (SF_25,)
-        else:
+        elif config.current_experiment_region == "SF_190":
             bases = (SF_190,)
+        else:
+            raise ValueError('No Experiment of class name "{}" found in Experiment.py.'.format(config.current_experiment_region))
         return type(name, bases, dct)
 
 class PAMoDFleet(metaclass=MetaPAMoDFleet):
-    def __init__(self, config):
+    def __init__(self, experiment_config):
         # Experiment Parameters
-        super().__init__(config)
+        super().__init__(experiment_config)
 
         self.results_path = os.path.join(self.results_path, 'PAMoDFleet')
         if not os.path.exists(self.results_path):
@@ -431,6 +437,9 @@ class PAMoDFleet(metaclass=MetaPAMoDFleet):
     def run(self):
         if self.config['algorithm'] == 'PAMoD_optimization_gurobi':
             [X, U, U_trip_charge_idle, U_rebal, elec_energy, elec_demand, dist, revenue, fleet_cost, elec_carbon, gas, gas_carbon] = PAMoD_optimization_gurobi(self)
+        elif self.config['algorithm'] == 'PAMoD_optimization_pyomo':
+            [X, U, U_trip_charge_idle, U_rebal, elec_energy, elec_demand, dist, revenue, fleet_cost, elec_carbon, gas,
+             gas_carbon] = PAMoD_optimization_pyomo(self)
         else:
             raise ValueError('"{}" is not a valid algorithm for the experiment_type {}'.format(self.config['algorithm'], self.config['experiment_type']))
         self.X_list = X

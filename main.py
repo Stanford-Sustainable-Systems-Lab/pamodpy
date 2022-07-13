@@ -1,6 +1,7 @@
 import pamodpy
 import pickle
 import os
+import config
 
 def main():
     new_experiment_config_jsons = [
