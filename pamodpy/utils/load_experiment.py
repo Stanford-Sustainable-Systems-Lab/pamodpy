@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from pamodpy.experiments.PAMoDFleet import initialize_PAMoDFleet
+from pamodpy.experiments.PAMoDFleet import PAMoDFleet
 from pamodpy.experiments.Experiment import SF_25
 
 
@@ -18,7 +18,7 @@ def load_experiment(json_fname):
 
     if experiment_type == 'PAMoDFleet':
         if region == 'SF_25':
-            experiment = initialize_PAMoDFleet(SF_25, config)
+            experiment = PAMoDFleet(config)
         else:
             raise ValueError('"{}" is not a valid region.'.format(region))
         return experiment
