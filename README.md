@@ -1,10 +1,10 @@
-# pamod-py
+# pamodpy
 The Power-in-the-Loop Autonomous Mobility-on-Demand (P-AMoD) Python Toolkit optimizes for planning and operational decisions at lowest cost for autonomous electric ride-hail fleet managers.
 The Planning Tool determines fleet sizing with consideration of mixed vehicle models and powertrains, charging station siting with consideration of various station types and charging rates, and fleet operations (i.e., rebalancing, charging, serving customers, and idling) at a mesoscopic level.
 The Operations Tool determines fleet operations at a microscopic level with real-time performance speeds.
 
-pamod-py is licensed under the MIT License (see LICENSE file). The copyright notice and permission notice in LICENSE shall be included in all
-copies or substantial portions of pamod-py.
+pamodpy is licensed under the MIT License (see LICENSE file). The copyright notice and permission notice in LICENSE shall be included in all
+copies or substantial portions of pamodpy.
 
 ## Usage
 1) Build the Anaconda environment using environment_from_history.yml
