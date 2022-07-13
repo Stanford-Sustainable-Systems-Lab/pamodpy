@@ -5,7 +5,7 @@ import config
 
 def main():
     new_experiment_config_jsons = [
-            os.path.join('experiment_configs', 'sample.json'),
+            os.path.join('experiment_configs', 'sample_pyomo.json'),
     ]
 
     for new_experiment_config_json in new_experiment_config_jsons:
