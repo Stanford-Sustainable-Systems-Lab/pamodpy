@@ -406,13 +406,13 @@ def PAMoD_optimization_gurobi(experiment):
             revenue_final = revenue.getValue() * U_const
         else:
             revenue_final = revenue
-        if any(Car.powertrain != 'electric' for Car in experiment.Vehicles):
+        if any(Vehicle.powertrain != 'electric' for Vehicle in experiment.Vehicles):
             gas_final = gas.getValue()[0] * U_const
             gas_carbon_final = gas_carbon.getValue()[0] * U_const
         else:
             gas_final = 0
             gas_carbon_final = 0
-        if any(Car.powertrain == 'electric' for Car in experiment.Vehicles):
+        if any(Vehicle.powertrain == 'electric' for Vehicle in experiment.Vehicles):
             elec_energy_final = elec_energy.getValue()[0] * U_const
             elec_demand_final = elec_demand.getValue()[0] * U_const
             elec_carbon_final = elec_carbon.getValue()[0] * U_const
