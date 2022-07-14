@@ -91,16 +91,16 @@ def PAMoD_optimization_pyomo(experiment):
         return outputs
 
     def constr_conservation(A_nodes_t, U):
-        A_nodes_t_index_gen = ((A_nodes_t[i, :], np.nonzero(A_nodes_t[i, :])) for i in range(A_nodes_t.shape[0]))
+        A_nodes_t_index_gen = ((A_nodes_t[i, :], np.nonzero(A_nodes_t[i, :])[0].tolist()) for i in range(A_nodes_t.shape[0]))
         with pmp.ThreadingPool() as p:
             outputs = p.map(constr_conservation_worker, A_nodes_t_index_gen, repeat(U), count())
         return outputs
 
-    def constr_boundary(A_out_nodes_start, A_out_nodes_end, U):
-        A_out_nodes_start_index_gen = ((A_out_nodes_start[i, :], np.nonzero(A_out_nodes_start[i, :])) for i in range(A_out_nodes_start.shape[0]))
-        A_out_nodes_end_index_gen = ((A_out_nodes_end[i, :], np.nonzero(A_out_nodes_end[i, :])) for i in range(A_out_nodes_end.shape[0]))
+    def constr_boundary(A_out_nodes_start, A_in_nodes_end, U):
+        A_out_nodes_start_index_gen = ((A_out_nodes_start[i, :], np.nonzero(A_out_nodes_start[i, :])[0].tolist()) for i in range(A_out_nodes_start.shape[0]))
+        A_in_nodes_end_index_gen = ((A_in_nodes_end[i, :], np.nonzero(A_in_nodes_end[i, :])[0].tolist()) for i in range(A_in_nodes_end.shape[0]))
         with pmp.ThreadingPool() as p:
-            outputs = p.map(constr_boundary_worker, A_out_nodes_start_index_gen, A_out_nodes_end_index_gen, repeat(U), count())
+            outputs = p.map(constr_boundary_worker, A_out_nodes_start_index_gen, A_in_nodes_end_index_gen, repeat(U), count())
         return outputs
 
     def post_opt_U_rebal(U_value, PAMoDVehicle):
@@ -148,9 +148,9 @@ def PAMoD_optimization_pyomo(experiment):
                 m.UMax_charge = pe.Param(m.Lep, m.n_EVSEs, initialize=experiment.UMax_charge)
             m.PMax = pe.Var(m.Lep, domain=pe.NonNegativeReals)
             if experiment.drop_trips:
-                m.trip_flow = pe.Var(m.RT)
+                m.trip_flow = pe.Var(m.RT, domain=pe.NonNegativeReals)
             else:
-                m.trip_flow = pe.Param(m.RT)
+                m.trip_flow = pe.Param(m.RT, initialize=0, domain=pe.NonNegativeReals)
             fleet_sizes = []
             if experiment.optimize_fleet_size:
                 fleet_size_const = 10000
@@ -168,7 +168,7 @@ def PAMoD_optimization_pyomo(experiment):
             m.constr_fleet_sizes = pe.ConstraintList()
             for vehicle_idx, PAMoDVehicle in enumerate(experiment.PAMoDVehicles):
                 nodes_start = PAMoDVehicle.filter_node_idx(None, None, experiment.startT)
-                m.constr_fleet_sizes.add(expr=(sum_product(np.ones(len(nodes_start)) * -PAMoDVehicle.A_outflows[nodes_start], U_list[vehicle_idx])) == fleet_sizes[vehicle_idx] * (fleet_size_const / U_const))
+                m.constr_fleet_sizes.add(expr=sum_product(np.ones(len(nodes_start)) * -PAMoDVehicle.A_outflows[nodes_start], U_list[vehicle_idx]) == fleet_sizes[vehicle_idx] * (fleet_size_const / U_const))
                 experiment.logger.info("--Created fleet size constraints (elapsed={:.2f})".format(time.time() - tic))
 
             if experiment.charge_throttle:
@@ -259,21 +259,18 @@ def PAMoD_optimization_pyomo(experiment):
             m.constr_flow_conservation = pe.ConstraintList()
             for vehicle_idx, PAMoDVehicle in enumerate(experiment.PAMoDVehicles):
                 nodes_t = PAMoDVehicle.filter_node_idx(None, None, np.array(range(experiment.startT + 1, experiment.endT - 1)))
-                print(vehicle_idx, len(nodes_t))
                 outputs = constr_conservation((PAMoDVehicle.A[nodes_t]).toarray(), U_list[vehicle_idx])
                 for output in sorted(outputs, key=lambda item: item[-1]):
                     m.constr_flow_conservation.add(expr=output[0])
                 del outputs
 
-            print('here')
-            # TODO: assumes node with same charge and location coordinates will line up on LHS and RHS.  Should verify this is always true and robust.
             m.constr_boundary = pe.ConstraintList()
             if experiment.boundary:
                 for vehicle_idx, PAMoDVehicle in enumerate(experiment.PAMoDVehicles):
                     nodes_start = PAMoDVehicle.filter_node_idx(None, None, experiment.startT)
                     nodes_end = PAMoDVehicle.filter_node_idx(None, None, experiment.endT - 1)
-                    print(vehicle_idx, len(nodes_start), len(nodes_end))
-                    outputs = constr_boundary((PAMoDVehicle.A_outflows[nodes_start]).toarray(), (PAMoDVehicle.A_outflows[nodes_end]).toarray(), U_list[vehicle_idx])
+                    assert np.all(PAMoDVehicle.G_nodes_arr[nodes_start][:, :2] == PAMoDVehicle.G_nodes_arr[nodes_end][:, :2])
+                    outputs = constr_boundary((PAMoDVehicle.A_outflows[nodes_start]).toarray(), (PAMoDVehicle.A_inflows[nodes_end]).toarray(), U_list[vehicle_idx])
                     for output in sorted(outputs, key=lambda item: item[-1]):
                         m.constr_boundary.add(expr=output[0])
                     del outputs
@@ -286,7 +283,7 @@ def PAMoD_optimization_pyomo(experiment):
                 if output[0] is not None:
                     m.constr_PMax.add(expr=output[0])
             del outputs
-            dist = quicksum([sum_product(U_list[vehicle_idx], PAMoDVehicle.Dist * experiment.p_travel) for vehicle_idx, PAMoDVehicle in enumerate(experiment.PAMoDVehicles)])
+            dist = quicksum([sum_product(PAMoDVehicle.Dist * experiment.p_travel, U_list[vehicle_idx]) for vehicle_idx, PAMoDVehicle in enumerate(experiment.PAMoDVehicles)])
             experiment.logger.info("--Created elec_demand and dist obj terms (elapsed={:.2f})".format(time.time() - tic))
 
             gas = 0
@@ -379,32 +376,25 @@ def PAMoD_optimization_pyomo(experiment):
                 if output is not None:
                     U_rebal[output[0]] = output[1]
             U_rebal_list.append(U_rebal)
-            U_rebal_dist_costs.append((sum_product(U_rebal, PAMoDVehicle.Dist)) * experiment.p_travel * U_const)
+            U_rebal_dist_costs.append((U_rebal @ PAMoDVehicle.Dist) * experiment.p_travel * U_const)
             del outputs
             U_trip_charge_idle = U_value - U_rebal
             U_trip_charge_idle_list.append(U_trip_charge_idle)
-        experiment.logger.info("U_rebal distance costs = {}".format(quicksum(U_rebal_dist_costs)))
+        experiment.logger.info("U_rebal distance costs = {}".format(sum(U_rebal_dist_costs)))
 
         infra_value = 0
         if experiment.optimize_infra:
+            UMax_charge_value = np.array(list(m.UMax_charge.extract_values().values())).reshape(
+                (len(experiment.locations_excl_passthrough), len(experiment.EVSEs)))
             if experiment.optimize_infra_mip:
-                for lep_idx, l in enumerate(experiment.locations_excl_passthrough):
-                    for evse_idx, evse in enumerate(experiment.EVSEs):
-                        infra_value += (np.array(list(m.B.extract_values().values())).reshape((len(experiment.locations_excl_passthrough), len(experiment.EVSEs)))[lep_idx, evse_idx] * experiment.p_infra_capital[lep_idx, evse_idx] +
-                                  experiment.p_infra_marginal[
-                                      lep_idx, evse_idx] * np.array(list(m.UMax_charge.extract_values().values())).reshape((len(experiment.locations_excl_passthrough), len(experiment.EVSEs))) * UMax_const) * (
-                                         1 / U_const)
+                B_value = np.array(list(m.B.extract_values().values())).reshape(
+                    (len(experiment.locations_excl_passthrough), len(experiment.EVSEs)))
+                infra_value = np.sum(B_value * experiment.p_infra_capital + experiment.p_infra_marginal * UMax_charge_value * UMax_const) * (1 / U_const)
             else:
-                for lep_idx, l in enumerate(experiment.locations_excl_passthrough):
-                    for evse_idx, evse in enumerate(experiment.EVSEs):
-                        infra_value += (experiment.p_infra_marginal[lep_idx, evse_idx] * np.array(list(m.UMax_charge.extract_values().values())).reshape((len(experiment.locations_excl_passthrough), len(experiment.EVSEs))) * UMax_const) * (
-                                         1 / U_const)
+                infra_value = np.sum(experiment.p_infra_marginal * UMax_charge_value * UMax_const) * (1 / U_const)
+
         elif experiment.use_baseline_charge_stations:
-            for lep_idx, l in enumerate(experiment.locations_excl_passthrough):
-                for evse_idx, evse in enumerate(experiment.EVSEs):
-                    infra_value += (experiment.p_infra_marginal[lep_idx, evse_idx] * experiment.UMax_charge[
-                        lep_idx, evse_idx]) * (
-                                           1 / U_const)
+            infra_value = np.sum(experiment.p_infra_marginal * experiment.UMax_charge) * (1 / U_const)
 
         infra_value *= U_const
         experiment.logger.info("infra_value = {}".format(infra_value))
@@ -413,16 +403,16 @@ def PAMoD_optimization_pyomo(experiment):
             revenue_final = revenue() * U_const
         else:
             revenue_final = revenue
-        if any(Car.powertrain != 'electric' for Car in experiment.Vehicles):
-            gas_final = gas()[0] * U_const
-            gas_carbon_final = gas_carbon()[0] * U_const
+        if any(Vehicle.powertrain != 'electric' for Vehicle in experiment.Vehicles):
+            gas_final = gas() * U_const
+            gas_carbon_final = gas_carbon() * U_const
         else:
             gas_final = 0
             gas_carbon_final = 0
-        if any(Car.powertrain == 'electric' for Car in experiment.Vehicles):
-            elec_energy_final = elec_energy()[0] * U_const
-            elec_demand_final = elec_demand()[0] * U_const
-            elec_carbon_final = elec_carbon()[0] * U_const
+        if any(Vehicle.powertrain == 'electric' for Vehicle in experiment.Vehicles):
+            elec_energy_final = elec_energy() * U_const
+            elec_demand_final = elec_demand() * U_const
+            elec_carbon_final = elec_carbon * U_const
         else:
             elec_energy_final = 0
             elec_demand_final = 0
@@ -432,7 +422,7 @@ def PAMoD_optimization_pyomo(experiment):
         return [X_list, np.array(U_value_list) * U_const, np.array(U_trip_charge_idle_list) * U_const, np.array(U_rebal_list) * U_const,
                 elec_energy_final,
                 elec_demand_final,
-                dist()[0] * U_const,
+                dist() * U_const,
                 revenue_final,
                 fleet_cost * U_const,
                 elec_carbon_final,
@@ -587,10 +577,10 @@ def constr_conservation_worker(A_node_t_index, U, count):
     A_node_t, index = A_node_t_index
     return sum_product(A_node_t, U, index=index) == 0, count
 
-def constr_boundary_worker(A_out_node_start_index, A_out_node_end_index, U, count):
+def constr_boundary_worker(A_out_node_start_index, A_in_node_end_index, U, count):
     A_out_node_start, start_index = A_out_node_start_index
-    A_out_node_end, end_index = A_out_node_end_index
-    return sum_product(A_out_node_end, U, index=end_index) - sum_product(A_out_node_start, U, index=start_index) == 0, count
+    A_in_node_end, end_index = A_in_node_end_index
+    return sum_product(A_in_node_end, U, index=end_index) + sum_product(A_out_node_start, U, index=start_index) == 0, count
 
 def post_opt_U_rebal_worker(U_value, PAMoDVehicle, o_d_t, experiment):
     O, D, t = o_d_t
