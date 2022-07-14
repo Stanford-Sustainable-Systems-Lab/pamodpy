@@ -1,6 +1,6 @@
 {
   "experiment_type": "PAMoDFleet",
-  "algorithm": "PAMoD_optimization_gurobi",
+  "algorithm": "PAMoD_optimization_pyomo",
   "region": "SF_25",
   "optimize_fleet_size": true,
   "optimize_infra": true,

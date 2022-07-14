@@ -390,10 +390,10 @@ def charging_power_time(time_vec, experiment, vehicle_idx, top_lim=None):
     fig = plt.figure()
     for rate in np.unique([edge[2] for edge in experiment.PAMoDVehicles[vehicle_idx].G.edges(data='power_grid') if edge[2] is not None]):
         rate_arr = np.zeros(experiment.T)
-        for t in range(experiment.T):
+        for t_idx, t in enumerate(range(experiment.startT, experiment.endT)):
             E_charge_idx_t_rate = experiment.PAMoDVehicles[vehicle_idx].filter_edge_idx('charge', t=t, power_grid=(rate - 1 / experiment.deltaT * experiment.deltaC, rate))
             if E_charge_idx_t_rate is not None:
-                rate_arr[t] = np.sum(experiment.U_trip_charge_idle_list[vehicle_idx][E_charge_idx_t_rate])
+                rate_arr[t_idx] = np.sum(experiment.U_trip_charge_idle_list[vehicle_idx][E_charge_idx_t_rate])
         if rate_arr.sum() > 10:
             plt.plot(time_vec, rate_arr, label='{} kW'.format(rate))
     plt.legend()
@@ -440,14 +440,14 @@ def heatmaps(startT, endT, experiment, power_matrix_list, vehicle_idx):
     demand_dep = experiment.od_matrix.sum(axis=(1, 2))# + experiment.od_matrix.sum(axis=(0, 2))
     demand_dep = demand_dep / np.sum(demand_dep)
     infra_cap = np.zeros(len(experiment.locations_excl_passthrough))
-    infra_cap_rates = np.zeros((len(experiment.locations_excl_passthrough), len(experiment.charge_rate)))
+    infra_cap_rates = np.zeros((len(experiment.locations_excl_passthrough), len(experiment.EVSEs)))
     for evse_idx, evse in enumerate(experiment.EVSEs):
         data = experiment.UMax_charge[:, evse_idx] * evse.rate
         infra_cap += data
         infra_cap_rates[:, evse_idx] += data
     infra_vmax = np.amax(infra_cap) / 1000
     infra_cap = np.append(infra_cap, [0, 0, 0])
-    infra_cap_rates = np.concatenate((infra_cap_rates, np.zeros((3, len(experiment.charge_rate)))))
+    infra_cap_rates = np.concatenate((infra_cap_rates, np.zeros((3, len(experiment.EVSEs)))))
 
     if experiment.region == "SF_25" or experiment.region == "SF2_25":
         cluster_to_taz = {
@@ -506,11 +506,11 @@ def heatmaps(startT, endT, experiment, power_matrix_list, vehicle_idx):
                  os.path.join(experiment.Vehicles[vehicle_idx].name, 'heatmap_travel_demand_arr.png')]
 
     if experiment.optimize_infra or experiment.use_baseline_charge_stations:
-        column_names.extend(['infra_cap'] + ['infra_cap_{}'.format(rate) for rate in experiment.charge_rate])
+        column_names.extend(['infra_cap'] + ['infra_cap_{}'.format(evse.rate) for evse in experiment.EVSEs])
         titles.extend(['Charging infrastructure capacity [MW]']
-                      + ['{} kW charging infrastructure capacity [MW]'.format(rate) for rate in experiment.charge_rate])
+                      + ['{} kW charging infrastructure capacity [MW]'.format(evse.rate) for evse in experiment.EVSEs])
         filenames.extend(['heatmap_infra_cap.png']
-                         + ['heatmap_infra_cap_{}.png'.format(rate) for rate in experiment.charge_rate])
+                         + ['heatmap_infra_cap_{}.png'.format(evse.rate) for evse in experiment.EVSEs])
 
     for column_name, title, filename in zip(column_names, titles, filenames):
         fig, ax = plt.subplots(figsize=(12, 8))

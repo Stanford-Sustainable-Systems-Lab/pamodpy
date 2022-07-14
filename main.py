@@ -1,10 +1,11 @@
 import pamodpy
 import pickle
 import os
+import config
 
 def main():
     new_experiment_config_jsons = [
-            os.path.join('experiment_configs', 'sample.json'),
+            os.path.join('experiment_configs', 'sample_pyomo.json'),
     ]
 
     for new_experiment_config_json in new_experiment_config_jsons:
@@ -16,6 +17,7 @@ def main():
 
 
     past_experiment_paths = [
+        # 'results/SF_25/sample/PAMoDFleet/sample.p'
         ]
 
     for past_experiment_path in past_experiment_paths:

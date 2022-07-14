@@ -1,6 +1,7 @@
 # Data files
 pamodpy/data/SF_25/*.npy
 pamodpy/data/SF_190/*.npy
+/pamodpy/data/SF_190/Justin-Luke---Academic_SF-TAZ-with-added-boundary-pass-through_ZoneSet/
 
 # Results
 results/

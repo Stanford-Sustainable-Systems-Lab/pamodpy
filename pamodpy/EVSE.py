@@ -23,6 +23,6 @@ class EVSE():
         self.p_infra_marginal = self.evse_unit_cost + (84 + 240)/2 + (200 + 250)/2
         self.p_infra_capital = 0.1 * (df.loc[idx]['capital_10unit_cost'].values[0] + (1500+3500)/2 + (325+1000)/2)
         if self.station is not None:
-            self.evse_id = str(self.station.location) + '_' + str(self.rate)
+            self.evse_id = str(self.station.name) + '_' + str(self.name)
         else:
             self.evse_id = None
