@@ -8,7 +8,7 @@
   "drop_trips": false,
   "deltaT": 0.25,
   "num_hours": 3,
-  "start_hour": 8,
+  "start_hour": 12,
   "deltaC": 0.5,
   "batt_cap_range": 0.8,
   "charge_throttle": false,
