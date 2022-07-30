@@ -514,14 +514,16 @@ def constr_infra_worker(U_list, UMax_charge, l_lidx_ridx_t, experiment, count):
 
 def obj_revenue_and_constr_UMax_road_worker(U_list, trip_flow, build, o_d_t, idx, experiment, count):
     O, D, t = o_d_t
+    O_idx = experiment.locations.index(O)
+    D_idx = experiment.locations.index(D)
     hour = int(np.floor((t * experiment.deltaT) % (24 / experiment.deltaT)))
     if experiment.drop_trips:
-        revenue_term = trip_flow[idx] * experiment.revenue_matrix[O - 1, D - 1, hour]
+        revenue_term = trip_flow[idx] * experiment.revenue_matrix[O_idx, D_idx, hour]
     else:
         revenue_term = 0
     if build:
         if experiment.drop_trips:
-            trip_flow_constr1 = (trip_flow[idx] <= experiment.od_matrix[O - 1, D - 1, hour] * experiment.deltaT / U_const)
+            trip_flow_constr1 = (trip_flow[idx] <= experiment.od_matrix[O_idx, D_idx, hour] * experiment.deltaT / U_const)
         else:
             trip_flow_constr1 = None
 
@@ -547,7 +549,7 @@ def obj_revenue_and_constr_UMax_road_worker(U_list, trip_flow, build, o_d_t, idx
                 trip_flow_constr2 = (sum(trip_flow_constr2_lhs) >= trip_flow[idx])
             else:
                 trip_flow_constr2 = (sum(trip_flow_constr2_lhs) >= experiment.od_matrix[
-                        O - 1, D - 1, hour] * experiment.deltaT / U_const)
+                        O_idx, D_idx, hour] * experiment.deltaT / U_const)
             if experiment.congestion_constr_road:
                 UMax_road_constr = (sum(UMax_road_constr_lhs) <= (0.1 * sum(experiment.fleet_sizes)) / U_const) # TODO have actual road congestion
             return revenue_term, trip_flow_constr1, trip_flow_constr2, UMax_road_constr, count
@@ -583,12 +585,14 @@ def obj_elec_demand_worker(U_list, PMax, lidx_l_t, experiment, count):
 
 def post_opt_U_rebal_worker(U_value, PAMoDVehicle, o_d_t, experiment):
     O, D, t = o_d_t
+    O_idx = experiment.locations.index(O)
+    D_idx = experiment.locations.index(D)
     hour = int(np.floor((t * experiment.deltaT) % (24 / experiment.deltaT)))
     E_road_idx_r_nonidle_t = PAMoDVehicle.filter_edge_idx('road', O, D, idle=False, t=t)
     if len(E_road_idx_r_nonidle_t) == 0:
         return None
     U_non_idle_r_t_sum = np.sum(U_value[E_road_idx_r_nonidle_t])
-    demand_r_t = experiment.od_matrix[O - 1, D - 1, hour] * experiment.deltaT
+    demand_r_t = experiment.od_matrix[O_idx, D_idx, hour] * experiment.deltaT
     if U_non_idle_r_t_sum >= demand_r_t / U_const and U_non_idle_r_t_sum > 0:
         return E_road_idx_r_nonidle_t, U_value[E_road_idx_r_nonidle_t] * (
                 U_non_idle_r_t_sum - demand_r_t / U_const) / U_non_idle_r_t_sum
