@@ -1,10 +1,11 @@
 import os
 import pandas as pd
 
+from .utils.constants import PATH_TO_CAR_PARAMS
 
 class Vehicle():
     def __init__(self, name):
-        df = pd.read_csv(os.path.join(os.path.dirname(__file__), 'data', 'Vehicle_parameters.csv'))
+        df = pd.read_csv(PATH_TO_CAR_PARAMS)
         if name not in df['name'].values:
             print('Warning: vehicle with name "{}" not found.'.format(name) +
                   '\nHere is a list of available names from "Vehicle_parameters.csv":\n{}'.format(df['name']) +
@@ -32,4 +33,4 @@ class Vehicle():
         self.eta_regen = 0.6
         self.eta_discharge = 0.95
         self.eta_charge = 0.90
-        self.aux_power = 1000                                   # [W]
+        self.aux_power = 4                                   # [kW]
