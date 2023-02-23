@@ -18,4 +18,4 @@ name,make,model,year,trim,powertrain,m,Af,Cd,Cr,batt_cap,max_charge_rate_AC,max_
 2022 Wuling Hongguang Mini EV Yue Xiang,Wuling,Hongguang Mini EV,2022,Yue Xiang,electric,705,Af,Cd,0.01,13.8,2.2,0,6.49650078,NA,15366,energies_2022_Wuling_Hongguang_Mini_EV_YX.npy
 2022 Nissan Sakura X,Nissan,Sakura,2022,X,electric,1070,Af,Cd,0.01,20,2.9,30,5.011058,NA,21832,energies_2022_Nissan_Sakura_X.npy
 2022 Nissan Sakura Lite,Nissan,Sakura,2022,Lite,electric,1070,Af,Cd,0.01,15,2.9,30,5.011058,NA,21832,energies_2022_Nissan_Sakura_X.npy
-2023 Chevrolet Bolt EV 1LT,Chevrolet,Bolt EV,2023,1LT,electric,1628,Af,Cd,0.01,65,11.5,55,4.321354201,NA,26595,energies_2022_Chevrolet_Bolt_EV_1LT.npy
+2023 Chevrolet Bolt EV 1LT,Chevrolet,Bolt EV,2023,1LT,electric,1628,Af,Cd,0.01,65,11.5,55,4.321354201,NA,26595,energies_2023_Chevrolet_Bolt_EV_1LT.npy
