@@ -54,4 +54,5 @@ p_demand_month = 95.56 / 50                                               # [$/k
 INTEREST_RATE = 0.07
 EVSE_LIFESPAN = 10                                                      # [yrs]
 
-tons_CO2_per_gal_gas = 0.008887
+TONS_CO2_PER_GAL_GAS = 0.008887
+KWH_PER_GAL_GAS = 33.7
