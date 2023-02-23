@@ -22,6 +22,8 @@ class EVSE():
         self.evse_unit_cost = df.loc[idx]['evse_unit_cost'].values[0]   # [$]
         self.p_infra_marginal = self.evse_unit_cost + (84 + 240)/2 + (200 + 250)/2
         self.p_infra_capital = 0.1 * (df.loc[idx]['capital_10unit_cost'].values[0] + (1500+3500)/2 + (325+1000)/2)
+        self.plugs_per_unit = 1
+        self.num_plugs = self.plugs_per_unit * self.num_units
         if self.station is not None:
             self.evse_id = str(self.station.name) + '_' + str(self.name)
         else:
