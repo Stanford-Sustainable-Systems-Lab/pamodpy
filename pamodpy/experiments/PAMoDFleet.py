@@ -137,7 +137,6 @@ class PAMoDFleet(metaclass=MetaPAMoDFleet):
             self.U_rebal = None
             self.costs_list = None
             self.power_matrix = None
-            self.logger = None
 
         def set_incidence_matrices(self):
             self.A = (nx.incidence_matrix(self.G, oriented=True))
@@ -165,29 +164,29 @@ class PAMoDFleet(metaclass=MetaPAMoDFleet):
             south = last_area_zone + 3
 
             if O <= last_area_zone and D <= last_area_zone:
-                energy += self.energy_OD[O_idx + 2, D_idx + 2]  # TODO: fix this relic (first two rows empty, arbitrarily)
+                energy += self.energy_OD[O_idx + 2, D_idx + 2] + Car.aux_power * dur  # TODO: fix this relic (first two rows empty, arbitrarily)
 
             if O == golden_gate or D == golden_gate:
                 dur += 40 / 60
                 dist += 20
                 if Car.powertrain == 'electric':
-                    energy += 20 / (Car.mi_per_kWh / Car.eta_charge)
+                    energy += 20 / (Car.mi_per_kWh / Car.eta_charge) + Car.aux_power * dur
                 else:
-                    energy += 20 / Car.mi_per_gal
+                    energy += 20 / Car.mi_per_gal + Car.aux_power * dur / KWH_PER_GAL_GAS
             if O == bay_bridge or D == bay_bridge:
                 dur += 20 / 60
                 dist += 15
                 if Car.powertrain == 'electric':
-                    energy += 15 / (Car.mi_per_kWh / Car.eta_charge)
+                    energy += 15 / (Car.mi_per_kWh / Car.eta_charge) + Car.aux_power * dur
                 else:
-                    energy += 15 / Car.mi_per_gal
+                    energy += 15 / Car.mi_per_gal + Car.aux_power * dur / KWH_PER_GAL_GAS
             if O == south or D == south:
                 dur += 45 / 60
                 dist += 30
                 if Car.powertrain == 'electric':
-                    energy += 30 / (Car.mi_per_kWh / Car.eta_charge)
+                    energy += 30 / (Car.mi_per_kWh / Car.eta_charge) + Car.aux_power * dur
                 else:
-                    energy += 30 / Car.mi_per_gal
+                    energy += 30 / Car.mi_per_gal + Car.aux_power * dur / KWH_PER_GAL_GAS
 
             dur_deltaTs = self.Fleet.round_time(dur, min_val=1)
             if Car.powertrain == 'electric':
@@ -202,14 +201,14 @@ class PAMoDFleet(metaclass=MetaPAMoDFleet):
             demand = self.Fleet.od_matrix[O_idx, D_idx, hour] * self.Fleet.deltaT
 
             if energy_deltaCs > self.C:
-                self.logger.error(
+                self.Fleet.logger.error(
                     "Not enough battery capacity for O={}, D={}, t={}, energy={}. Trips dropped={}".format(O, D, t,
                                                                                                            energy,
                                                                                                            demand))
                 self.num_dropped_trips += demand
                 return False
             elif energy_deltaCs > self.C / 2 and (D == golden_gate or D == bay_bridge or D == south):  # TODO
-                self.logger.error(
+                self.Fleet.logger.error(
                     "Not enough battery capacity for O={}, D={}, t={}, energy={}. Trips dropped={}".format(O, D, t,
                                                                                                            energy,
                                                                                                            demand))
@@ -238,7 +237,7 @@ class PAMoDFleet(metaclass=MetaPAMoDFleet):
             energy_deltaCs = self.Fleet.round_energy(rate * dur * Car.eta_charge)
             energy = self.Fleet.deltaC * energy_deltaCs
             if energy_deltaCs < 1:
-                self.logger.error(
+                self.Fleet.logger.error(
                     "With C={}, rate={} is too low to charge one level during dur_deltaTs={} and deltaTs={}".format(
                         self.C, rate, dur_deltaTs, self.Fleet.deltaT))
                 return
@@ -259,6 +258,11 @@ class PAMoDFleet(metaclass=MetaPAMoDFleet):
                                             power_grid=energy / Car.eta_charge / dur,
                                             rating=rate,
                                             evse_id=evse_id)
+                    else:
+                        if not throttle:
+                            energy_net_topoff = self.Fleet.deltaC * (self.C - 1 - c)
+                            dur_topoff = dur * ((self.C - 1 - c) / energy_deltaCs)
+                            # self.G.add_edge()  # TODO
                 if throttle:
                     for energy_deltaCs_throttled in reversed(range(1, energy_deltaCs)):
                         energy_throttled = self.Fleet.deltaC * energy_deltaCs_throttled
