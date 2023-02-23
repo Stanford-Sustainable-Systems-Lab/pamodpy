@@ -44,51 +44,59 @@ class Experiment(ABC):
         self.config = config
         self.name = config['name']
         self.region = config['region']
-        self.data_path = None
-        self.shp_file_path = None
+
+        # Key Parameters
         self.locations = None
         self.locations_excl_passthrough = None
+        self.deltaT = config['deltaT']  # time step duration [hr]
+        self.T = int(np.round(config['num_hours'] / self.deltaT))  # total number of time steps
+        self.startT = int(np.round(config['start_hour'] / self.deltaT))  # start time in time steps
+        self.endT = self.startT + self.T  # end time in time steps
+        self.deltaC = config['deltaC']  # energy step [kWh]
+        self.batt_cap_range = config['batt_cap_range']  # 1.0 - 0.2
+        self.charge_throttle = False
+        self.Vehicles = [Vehicle(vehicle_name) for vehicle_name in config['Vehicles']]  # 2022 Dacia Spring Comfort, 2022 Nissan Leaf S, 2022 Chevrolet Bolt EV 1LT,
+        # 2021 Hyundai IONIQ Electric SE, 2021 Hyundai IONIQ Hybrid SE # list of Vehicle models used in fleet
+        self.energy_ODs = None  # List of numpy array of OD matrix with trip energies in [kWh] for each vehicle in self.Vehicles
+        self.fleet_sizes = config['fleet_sizes']  # max(np.sum(self.od_matrix, axis=(0, 1)))         # List of number of vehicles of each Vehicle model in fleet, corresponding to self.Vehicles for each vehicle in self.Vehicles
+
+        # Data
+        self.data_path = None
+        self.shp_file_path = None
+        self.streetlight_df = None
         self.results_path = None                      # directory where results are saved
-        self.save_opt = True
-        self.load_opt = False
         self.time_matrix = None  # (L, L, 24) Numpy array of OD matrix with trip durations in [s]
         self.dist_matrix = None  # (L, L, 24) Numpy array of OD matrix with trip distances in [mi]
         self.od_matrix = None        # (L, L, 24) Numpy array of OD matrix with travel volume [# vehicles]
         self.top_idx = None                      # Numpy array of indices (not TAZ) of non-zero roads in matched_od_matrix_top
+        self.EVSEs = [EVSE(evse_name) for evse_name in config['EVSEs']]  # 7.7, 20, 50.0, 150.0
+        self.charge_rate = np.sort(
+            np.unique(np.array([evse.rate for evse in self.EVSEs])))  # list of available charging rates [kW]
+
+        # Optimization Settings
+        self.save_opt = True
+        self.load_opt = False
+        self.boundary = True  # constraint requiring fleet distribution and SOCs across all location at t=-1 be same as t=0
         self.optimize_fleet_size = config['optimize_fleet_size']                                             # Whether to optimize for fleet size or constrain it
         self.optimize_infra = config['optimize_infra']                                                 # Whether to optimize charging infrastructure placement
         self.optimize_infra_mip = False                                             # True: integer variable for capex or step costs; False: approximate costs as linear
         self.congestion_constr_road = False                                         # Whether to have congestion threshold limits on road paths
         self.congestion_constr_charge = True                                       # Whether to have congestion threshold limits at charging stations
         self.drop_trips = config['drop_trips']
+        self.use_baseline_charge_stations = config['use_baseline_charge_stations']
+
+        # Costs and prices
         self.revenue_matrix = None  # (L, L, 24) Numpy array of OD matrix with trip revenue in [$]
-        self.deltaT = config['deltaT']                                                         # time step duration [hr]
-        self.T = int(np.round(config['num_hours'] / self.deltaT))                                     # total number of time steps
-        self.startT = int(np.round(config['start_hour'] / self.deltaT))                                # start time in time steps
-        self.endT = self.startT + self.T                                            # end time in time steps
-        self.EVSEs = [EVSE(evse_name) for evse_name in config['EVSEs']]         #7.7, 20, 50.0, 150.0
-        self.charge_rate = np.sort(np.unique(np.array([evse.rate for evse in self.EVSEs])))  # list of available charging rates [kW]
-        self.charge_throttle = False
-        self.streetlight_df = None
-        self.boundary = True                                                        # constraint requiring fleet distribution and SOCs across all location at t=-1 be same as t=0
         self.p_elec_demand = p_demand_month
-
-        self.Vehicles = [Vehicle(vehicle_name) for vehicle_name in config['Vehicles']]  # 2022 Dacia Spring Comfort, 2022 Nissan Leaf S, 2022 Chevrolet Bolt EV 1LT,
-        # 2021 Hyundai IONIQ Electric SE, 2021 Hyundai IONIQ Hybrid SE # list of Vehicle models used in fleet
-        self.energy_ODs = None  # List of numpy array of OD matrix with trip energies in [kWh] for each vehicle in self.Vehicles
-        self.fleet_sizes = config['fleet_sizes']  # max(np.sum(self.od_matrix, axis=(0, 1)))         # List of number of vehicles of each Vehicle model in fleet, corresponding to self.Vehicles for each vehicle in self.Vehicles
-
-        self.deltaC = config['deltaC']                                                         # energy step [kWh]
         self.p_travel = config['p_travel']  # 0.0770 [$ / mi] 0.30 * 1.60934 https://newsroom.aaa.com/wp-content/uploads/2021/08/2021-YDC-Brochure-Live.pdf # travel cost (maintenance)
         self.p_ownership_excl_deprec = config['p_ownership_excl_deprec']  # 1381 + 155  # [$ / yr] https://newsroom.aaa.com/wp-content/uploads/2021/08/2021-YDC-Brochure-Live.pdf # insurance, fees. Finance charges ($692) also excluded
         self.p_travel_ICE = config['p_travel_ICE']  #0.0878 # [$ / mi] https://newsroom.aaa.com/wp-content/uploads/2021/08/2021-YDC-Brochure-Live.pdf # travel cost (maintenance)
         self.p_gas = config['p_gas']  #4.127 # [$ / gal] https://www.eia.gov/dnav/pet/pet_pri_gnd_dcus_y05sf_a.htm
         self.p_carbon = config['p_carbon']  #0 # [$ / ton CO2]
-        self.batt_cap_range = config['batt_cap_range']  # 1.0 - 0.2
-        self.use_baseline_charge_stations = config['use_baseline_charge_stations']
 
         # Generated variables
         self.p_elec = generate_p_elec(int(np.round(24 / self.deltaT)))
+        self.logger = None
 
     @abstractmethod
     def build(self):
@@ -102,6 +110,14 @@ class Experiment(ABC):
     def run(self):
         """
         Run the experiment.
+        :return: No return.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def save(self):
+        """
+        Save the experiment run's resulting output.
         :return: No return.
         """
         raise NotImplementedError
