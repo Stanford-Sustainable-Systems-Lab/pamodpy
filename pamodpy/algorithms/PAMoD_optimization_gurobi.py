@@ -262,7 +262,7 @@ def PAMoD_optimization_gurobi(experiment):
             for vehicle_idx, PAMoDVehicle in enumerate(experiment.PAMoDVehicles):
                 if PAMoDVehicle.Vehicle.powertrain != 'electric':
                     gas += U_list[vehicle_idx] @ PAMoDVehicle.energy_conv * experiment.p_gas
-                    gas_carbon += U_list[vehicle_idx] @ PAMoDVehicle.energy_conv * tons_CO2_per_gal_gas * experiment.p_carbon
+                    gas_carbon += U_list[vehicle_idx] @ PAMoDVehicle.energy_conv * TONS_CO2_PER_GAL_GAS * experiment.p_carbon
             experiment.logger.info("--Done creating optimization problem. Total time elapsed={:.2f}".format(time.time() - tic_start))
 
             # Set objective
