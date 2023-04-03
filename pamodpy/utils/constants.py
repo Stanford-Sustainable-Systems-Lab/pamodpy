@@ -16,9 +16,9 @@ PATH_TO_CAR_PARAMS = os.path.join(PATH_TO_DATA, 'Vehicle_parameters.csv')
 # DATA
 def generate_p_elec(T, create_plot=False):
     # https://www.pge.com/tariffs/assets/pdf/tariffbook/ELEC_SCHEDS_BEV.pdf
-    p_elec = 0.16872 * np.ones(T)                                          # Off-peak
-    p_elec[int(np.round(16/24 * T)): int(np.round(21/24 * T))] = 0.38195   # Peak [$/kWh]
-    p_elec[int(np.round(9/24 * T)):int(np.round(14/24 * T))] = 0.14545    # Super-off-peak
+    p_elec = 0.18603 * np.ones(T)                                          # Off-peak
+    p_elec[int(np.round(16/24 * T)): int(np.round(21/24 * T))] = 0.39926  # Peak [$/kWh]
+    p_elec[int(np.round(9/24 * T)):int(np.round(14/24 * T))] = 0.16276    # Super-off-peak
     if create_plot:
         plt.figure(dpi=200, figsize=(12, 8))
         plt.step(np.arange(0, 24, T/24), p_elec, where='post')
@@ -33,8 +33,8 @@ def generate_p_elec(T, create_plot=False):
     return p_elec
 
 def generate_carbon_intensity_grid(T, create_plot=False):
-    # https://ww2.arb.ca.gov/sites/default/files/classic/fuels/lcfs/fuelpathways/comments/tier2/2022_elec_update.pdf
-    carbon_intensity_grid_hourly = np.load(os.path.join(PATH_TO_DATA, 'CA_carbon_intensity_hourly_yearavg.npy')) / 1e6 * 3.6  # [ton CO2 / kWh]
+    # https://ww2.arb.ca.gov/sites/default/files/classic/fuels/lcfs/fuelpathways/comments/tier2/2023_elec_update.pdf
+    carbon_intensity_grid_hourly = np.load(os.path.join(PATH_TO_DATA, 'CA_carbon_intensity_hourly_yearavg.npy'))[:, 0] / 1e6 * 3.6  # [ton CO2 / kWh], 0 = Q1, 3 = Q4
     carbon_intensity_grid = np.ones(T)
     for hour, value in enumerate(carbon_intensity_grid_hourly):
         carbon_intensity_grid[int(np.round(hour/24 * T)):int(np.round((hour+1)/24 * T))] = value
