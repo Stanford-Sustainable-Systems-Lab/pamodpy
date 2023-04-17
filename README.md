@@ -16,14 +16,6 @@ copies or substantial portions of pamodpy.
 4) Run the toolkit by executing main.py 
 5) Results are stored in the results directory
 
-### Obtaining a Gurobi Academic License on a Virtual Machine
-1) Ensure Gurobi is installed on your virtual machine (Gurobi is one of the Anaconda packages in environment_from_history.yml). Check the Gurobi version number installed. 
-2) On Gurobi's website, register for an Academic License. Note your license key.
-3) On the virtual machine command line, run grbprobe and note the hostname, hostid, username, and platform
-4) On your computer that is connected to an academic network (e.g., campus internet, school VPN), make the following HTTP GET request: https://apps.gurobi.com/keyserver?id=<key>&hostname=<hostname>&hostid=<hostid>&username=<username>&os=<platform>&localdate=<YYYY-MM-DD>&version=<version>
-5) Save the returned information as a gurobi.lic file
-* The above instructions were adapted from this article: https://sproul.xyz/blog/posts/gurobi-academic-validation.html
-
 ## References
 If you use pamodpy, please acknowledge this and cite the following article:
 J. Luke, M. Salazar, R. Rajagopal and M. Pavone, "Joint Optimization of Autonomous Electric Vehicle Fleet Operations and Charging Station Siting," 2021 IEEE International Intelligent Transportation Systems Conference (ITSC), 2021, pp. 3340-3347, doi: 10.1109/ITSC48978.2021.9565089.
