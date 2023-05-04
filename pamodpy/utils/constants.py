@@ -34,7 +34,7 @@ def generate_p_elec(T, create_plot=False):
 
 def generate_carbon_intensity_grid(T, create_plot=False):
     # https://ww2.arb.ca.gov/sites/default/files/classic/fuels/lcfs/fuelpathways/comments/tier2/2023_elec_update.pdf
-    carbon_intensity_grid_hourly = np.load(os.path.join(PATH_TO_DATA, 'CA_carbon_intensity_hourly_yearavg.npy'))[:, 0] / 1e6 * 3.6  # [ton CO2 / kWh], 0 = Q1, 3 = Q4
+    carbon_intensity_grid_hourly = np.load(os.path.join(PATH_TO_DATA, 'CA_carbon_intensity_hourly_yearavg.npy')) / 1e6 * 3.6  # [ton CO2 / kWh], 0 = Q1, 3 = Q4
     carbon_intensity_grid = np.ones(T)
     for hour, value in enumerate(carbon_intensity_grid_hourly):
         carbon_intensity_grid[int(np.round(hour/24 * T)):int(np.round((hour+1)/24 * T))] = value
@@ -50,7 +50,7 @@ def generate_carbon_intensity_grid(T, create_plot=False):
         plt.show()
     return carbon_intensity_grid
 
-p_demand_month = 95.56 / 50                                               # [$/kW]
+p_demand_month = np.round(95.56 / 50, decimals=5)                                               # [$/kW]
 INTEREST_RATE = 0.07
 EVSE_LIFESPAN = 10                                                      # [yrs]
 

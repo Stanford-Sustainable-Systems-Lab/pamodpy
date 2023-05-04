@@ -79,14 +79,20 @@ class PAMoDFleet(metaclass=MetaPAMoDFleet):
                     self.T * self.deltaT / HOURS_PER_YEAR)
                     if not self.optimize_infra_mip:
                         self.p_infra_marginal[lep_idx, evse_idx] += self.p_infra_capital[lep_idx, evse_idx]
+                    else:
+                        pass  # TODO should have higher capital cost
         else:
             for lep_idx, l in enumerate(self.locations_excl_passthrough):
                     for station in self.charge_stations[l]:
                         for evse in station.EVSEs:
                             evse_idx = [e.name for e in self.EVSEs].index(evse.name)
                             self.UMax_charge[lep_idx, evse_idx] = evse.num_units
-                            self.p_infra_capital[lep_idx, evse_idx] = evse.p_infra_capital
-                            self.p_infra_marginal[lep_idx, evse_idx] = evse.p_infra_marginal
+                            self.p_infra_capital[lep_idx, evse_idx] = evse.p_infra_capital * (INTEREST_RATE / (1 - (1 + INTEREST_RATE) ** -EVSE_LIFESPAN)) * (
+                            self.T * self.deltaT / HOURS_PER_YEAR)
+                            self.p_infra_marginal[lep_idx, evse_idx] = evse.p_infra_marginal * (INTEREST_RATE / (1 - (1 + INTEREST_RATE) ** -EVSE_LIFESPAN)) * (
+                            self.T * self.deltaT / HOURS_PER_YEAR)
+        self.p_infra_capital = self.p_infra_capital.round(2)
+        self.p_infra_marginal = self.p_infra_marginal.round(2)
 
         # # Generated Variables (from above settings)
         # self.deltaC = None                  # energy step [kWh]
@@ -164,29 +170,29 @@ class PAMoDFleet(metaclass=MetaPAMoDFleet):
             south = last_area_zone + 3
 
             if O <= last_area_zone and D <= last_area_zone:
-                energy += self.energy_OD[O_idx + 2, D_idx + 2] + Car.aux_power * dur  # TODO: fix this relic (first two rows empty, arbitrarily)
+                energy += self.energy_OD[O_idx + 2, D_idx + 2] + Car.compute_power * dur  # TODO: fix this relic (first two rows empty, arbitrarily)
 
             if O == golden_gate or D == golden_gate:
                 dur += 40 / 60
                 dist += 20
                 if Car.powertrain == 'electric':
-                    energy += 20 / (Car.mi_per_kWh / Car.eta_charge) + Car.aux_power * dur
+                    energy += 20 / (Car.mi_per_kWh / Car.eta_charge) + Car.compute_power * dur
                 else:
-                    energy += 20 / Car.mi_per_gal + Car.aux_power * dur / KWH_PER_GAL_GAS
+                    energy += 20 / Car.mi_per_gal + Car.compute_power * dur / KWH_PER_GAL_GAS
             if O == bay_bridge or D == bay_bridge:
                 dur += 20 / 60
                 dist += 15
                 if Car.powertrain == 'electric':
-                    energy += 15 / (Car.mi_per_kWh / Car.eta_charge) + Car.aux_power * dur
+                    energy += 15 / (Car.mi_per_kWh / Car.eta_charge) + Car.compute_power * dur
                 else:
-                    energy += 15 / Car.mi_per_gal + Car.aux_power * dur / KWH_PER_GAL_GAS
+                    energy += 15 / Car.mi_per_gal + Car.compute_power * dur / KWH_PER_GAL_GAS
             if O == south or D == south:
                 dur += 45 / 60
                 dist += 30
                 if Car.powertrain == 'electric':
-                    energy += 30 / (Car.mi_per_kWh / Car.eta_charge) + Car.aux_power * dur
+                    energy += 30 / (Car.mi_per_kWh / Car.eta_charge) + Car.compute_power * dur
                 else:
-                    energy += 30 / Car.mi_per_gal + Car.aux_power * dur / KWH_PER_GAL_GAS
+                    energy += 30 / Car.mi_per_gal + Car.compute_power * dur / KWH_PER_GAL_GAS
 
             dur_deltaTs = self.Fleet.round_time(dur, min_val=1)
             if Car.powertrain == 'electric':
@@ -409,12 +415,12 @@ class PAMoDFleet(metaclass=MetaPAMoDFleet):
                                                 energy_grid]
 
             if PAMoDVehicle.Vehicle.powertrain == 'electric':
-                PAMoDVehicle.energy_conv = np.array([energy for O, D, energy in PAMoDVehicle.G.edges(data="energy_grid", default=0)])
+                PAMoDVehicle.energy_conv = np.array([energy for O, D, energy in PAMoDVehicle.G.edges(data="energy_grid", default=0)]).round(1)
             else:
                 PAMoDVehicle.energy_conv = np.array(
-                    [energy for O, D, energy in PAMoDVehicle.G.edges(data="energy", default=0)])
+                    [energy for O, D, energy in PAMoDVehicle.G.edges(data="energy", default=0)]).round(2)
             PAMoDVehicle.power_conv = np.array(
-                [power for O, D, power in PAMoDVehicle.G.edges(data="power_grid", default=0)])
+                [power for O, D, power in PAMoDVehicle.G.edges(data="power_grid", default=0)]).round(1)
 
             assert set(list(range(PAMoDVehicle.E))) == set(PAMoDVehicle.E_road_idx).union(
                 set(PAMoDVehicle.E_charge_idx))  # check that all graph's edges are accounted for in E_road_idx, E_charge_idx
@@ -440,9 +446,9 @@ class PAMoDFleet(metaclass=MetaPAMoDFleet):
 
     def run(self):
         if self.config['algorithm'] == 'PAMoD_optimization_gurobi':
-            [X, U, U_trip_charge_idle, U_rebal, elec_energy, elec_demand, dist, revenue, fleet_cost, elec_carbon, gas, gas_carbon] = PAMoD_optimization_gurobi(self)
+            [X, U, U_trip_charge_idle, U_rebal, elec_energy, elec_demand, dist, revenue, fleet_cost, elec_carbon, infra, gas, gas_carbon] = PAMoD_optimization_gurobi(self)
         elif self.config['algorithm'] == 'PAMoD_optimization_pyomo':
-            [X, U, U_trip_charge_idle, U_rebal, elec_energy, elec_demand, dist, revenue, fleet_cost, elec_carbon, gas,
+            [X, U, U_trip_charge_idle, U_rebal, elec_energy, elec_demand, dist, revenue, fleet_cost, elec_carbon, infra, gas,
              gas_carbon] = PAMoD_optimization_pyomo(self)
         else:
             raise ValueError('"{}" is not a valid algorithm for the experiment_type {}'.format(self.config['algorithm'], self.config['experiment_type']))
@@ -450,7 +456,7 @@ class PAMoDFleet(metaclass=MetaPAMoDFleet):
         self.U_list = U
         self.U_trip_charge_idle_list = U_trip_charge_idle
         self.U_rebal_list = U_rebal
-        self.costs_list = np.array([elec_energy, elec_demand, dist, revenue, fleet_cost])
+        self.costs_list = np.array([elec_energy, elec_demand, dist, revenue, fleet_cost, elec_carbon, infra, gas, gas_carbon])
         self.power_matrix_list = [np.zeros((len(self.locations_excl_passthrough), self.T - 1)) for _ in range(len(self.Vehicles))]
         for vehicle_idx, PAMoDVehicle in enumerate(self.PAMoDVehicles):
             for l_idx, l in enumerate(self.locations_excl_passthrough):
@@ -458,8 +464,8 @@ class PAMoDFleet(metaclass=MetaPAMoDFleet):
                     E_charge_idx_l_t = PAMoDVehicle.filter_edge_idx('charge', l, l, t=t)
                     self.power_matrix_list[vehicle_idx][l_idx, t_idx] = np.sum(
                         np.multiply(self.U_list[vehicle_idx][E_charge_idx_l_t], PAMoDVehicle.power_conv[E_charge_idx_l_t]))
-        self.logger.info('total={}, elec_energy={}, elec_demand={}, dist={}, revenue={}, fleet_cost={}, elec_carbon={}, gas={}, gas_carbon={}'.format(np.sum(self.costs_list),
-                                                                                     elec_energy, elec_demand, dist, revenue, fleet_cost, elec_carbon, gas, gas_carbon))
+        self.logger.info('total={}, elec_energy={}, elec_demand={}, dist={}, revenue={}, fleet_cost={}, elec_carbon={}, infra={}, gas={}, gas_carbon={}'.format(np.sum(self.costs_list),
+                                                                                     elec_energy, elec_demand, dist, revenue, fleet_cost, elec_carbon, infra, gas, gas_carbon))
     def save(self):
         np.save(os.path.join(self.results_path, 'power_matrix_list.npy'), self.power_matrix_list)
         np.save(os.path.join(self.results_path, 'X_list.npy'), self.X_list)
@@ -492,7 +498,8 @@ class PAMoDFleet(metaclass=MetaPAMoDFleet):
             return int(np.round(energy / self.deltaC))
 
     def set_logger(self):
-        self.logger = logging.getLogger()
+        self.logger = logging.getLogger(self.name)
+        logging.Logger.manager.loggerDict[self.name] = self.logger
         self.logger.setLevel(logging.INFO)
         self.logger.addHandler(logging.StreamHandler(sys.stdout))
         self.logger.addHandler(logging.FileHandler(os.path.join(self.results_path, 'print_log.txt')))

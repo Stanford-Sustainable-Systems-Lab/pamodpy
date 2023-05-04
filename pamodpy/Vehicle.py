@@ -33,4 +33,5 @@ class Vehicle():
         self.eta_regen = 0.6
         self.eta_discharge = 0.95
         self.eta_charge = 0.90
-        self.aux_power = 4                                   # [kW]
+        self.compute_power = 0                                   # [kW]
+        self.aux_power = 1                                       # [kW]

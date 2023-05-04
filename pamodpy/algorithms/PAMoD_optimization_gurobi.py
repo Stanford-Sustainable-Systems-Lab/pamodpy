@@ -155,7 +155,7 @@ def PAMoD_optimization_gurobi(experiment):
             tic = time.time()
             for vehicle_idx, PAMoDVehicle in enumerate(experiment.PAMoDVehicles):
                 nodes_start = PAMoDVehicle.filter_node_idx(None, None, experiment.startT)
-                m.addConstr((np.ones(len(nodes_start)) * -PAMoDVehicle.A_outflows[nodes_start] @ U_list[vehicle_idx]) == fleet_sizes[vehicle_idx] * (fleet_size_const / U_const), name="fleet_size_{}".format(vehicle_idx))
+                m.addConstr((np.ones(len(nodes_start)) @ -PAMoDVehicle.A_outflows[nodes_start] @ U_list[vehicle_idx]) == fleet_sizes[vehicle_idx] * (fleet_size_const / U_const), name="fleet_size_{}".format(vehicle_idx))
                 experiment.logger.info("--Created fleet size constraints (elapsed={:.2f})".format(time.time() - tic))
 
             if experiment.charge_throttle:
@@ -268,7 +268,7 @@ def PAMoD_optimization_gurobi(experiment):
             # Set objective
             fleet_cost = 0
             for vehicle_idx in range(len(experiment.Vehicles)):
-                fleet_cost += fleet_sizes[vehicle_idx] * (experiment.Vehicles[vehicle_idx].price * 0.2 + experiment.p_ownership_excl_deprec) * (experiment.T * experiment.deltaT / HOURS_PER_YEAR) * (
+                fleet_cost += fleet_sizes[vehicle_idx] * np.round((experiment.Vehicles[vehicle_idx].price * 0.2 + experiment.p_ownership_excl_deprec) * (experiment.T * experiment.deltaT / HOURS_PER_YEAR), decimals=2) * (
                         fleet_size_const / U_const)
 
             obj = elec_energy + elec_demand + elec_carbon + dist + revenue + fleet_cost + infra + gas + gas_carbon
@@ -292,6 +292,7 @@ def PAMoD_optimization_gurobi(experiment):
                 m.Params.Method = 2  # Barrier only; default -1 does simplex and barrier
                 # m.Params.BarConvTol = 1e-10     # default is 1e-8; make tighter to spend less time in crossover
                 m.Params.Crossover = 0
+                m.Params.BarConvTol = 1e-6     # default is 1e-8; make looser if crossover is off to terminate sooner
                 # m.Params.Presolve = 2             # default is -1 (auto); 2 is aggressive
                 # m.Params.BarOrder = 1             # default is -1 (auto); 0 is Approximate Minimum Degree, 1 is Nested Dissection (usual?)
 
@@ -357,8 +358,8 @@ def PAMoD_optimization_gurobi(experiment):
             del outputs
             nodes_start = PAMoDVehicle.filter_node_idx(None, None, experiment.startT)
             nodes_end = PAMoDVehicle.filter_node_idx(None, None, experiment.endT - 1)
-            X[nodes_start] = -PAMoDVehicle.A_outflows[nodes_start] * U_value * U_const
-            X[nodes_end] = PAMoDVehicle.A_inflows[nodes_end] * U_value * U_const
+            X[nodes_start] = -PAMoDVehicle.A_outflows[nodes_start] @ U_value * U_const
+            X[nodes_end] = PAMoDVehicle.A_inflows[nodes_end] @ U_value * U_const
             X_list.append(X)
 
         U_rebal_list = []
@@ -407,15 +408,15 @@ def PAMoD_optimization_gurobi(experiment):
         else:
             revenue_final = revenue
         if any(Vehicle.powertrain != 'electric' for Vehicle in experiment.Vehicles):
-            gas_final = gas.getValue()[0] * U_const
-            gas_carbon_final = gas_carbon.getValue()[0] * U_const
+            gas_final = gas.getValue() * U_const
+            gas_carbon_final = gas_carbon.getValue() * U_const
         else:
             gas_final = 0
             gas_carbon_final = 0
         if any(Vehicle.powertrain == 'electric' for Vehicle in experiment.Vehicles):
-            elec_energy_final = elec_energy.getValue()[0] * U_const
-            elec_demand_final = elec_demand.getValue()[0] * U_const
-            elec_carbon_final = elec_carbon.getValue()[0] * U_const
+            elec_energy_final = elec_energy.getValue() * U_const
+            elec_demand_final = elec_demand.getValue() * U_const
+            elec_carbon_final = elec_carbon.getValue() * U_const
         else:
             elec_energy_final = 0
             elec_demand_final = 0
@@ -425,10 +426,11 @@ def PAMoD_optimization_gurobi(experiment):
         return [X_list, np.array(U_value_list) * U_const, np.array(U_trip_charge_idle_list) * U_const, np.array(U_rebal_list) * U_const,
                 elec_energy_final,
                 elec_demand_final,
-                dist.getValue()[0] * U_const,
+                dist.getValue() * U_const,
                 revenue_final,
                 fleet_cost * U_const,
                 elec_carbon_final,
+                infra_value,
                 gas_final,
                 gas_carbon_final
                 ]  # TODO this won't work for load_opt == True
@@ -461,6 +463,11 @@ def obj_elec_energy_carbon_and_constr_UMax_charge_worker(U_list, UMax_charge, bu
                     elec_energy_list.append(
                         (U_list[vehicle_idx][E_charge_idx_l_eid_t] @ PAMoDVehicle.energy_conv[E_charge_idx_l_eid_t]) *
                         experiment.p_elec[t])
+                    elec_carbon_list.append(
+                        (U_list[vehicle_idx][E_charge_idx_l_eid_t] @ PAMoDVehicle.energy_conv[
+                            E_charge_idx_l_eid_t]) *
+                        experiment.carbon_intensity_grid[t] * experiment.p_carbon
+                    )
             else:
                 l, t, evse_id = l_t_eid
                 E_charge_idx_l_eid_t = PAMoDVehicle.filter_edge_idx('charge', l, l, evse_id=evse_id, t=t)
@@ -599,4 +606,4 @@ def post_opt_U_rebal_worker(U_value, PAMoDVehicle, o_d_t, experiment):
 
 def post_opt_X_worker(U_value, PAMoDVehicle, t):
     nodes_t = PAMoDVehicle.filter_node_idx(None, None, t)
-    return nodes_t, PAMoDVehicle.A_inflows[nodes_t] * U_value * U_const
+    return nodes_t, PAMoDVehicle.A_inflows[nodes_t] @ U_value * U_const
