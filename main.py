@@ -5,7 +5,10 @@ import config
 
 def main():
     new_experiment_config_jsons = [
-            os.path.join('experiment_configs', 'sample_pyomo.json'),
+        # os.path.join('experiment_configs', 'efficiency_and_battery', 'eff_185_batt_29.16.json'),
+        # os.path.join('experiment_configs', 'efficiency_and_battery', 'eff_185_batt_31.99.json'),
+        # os.path.join('experiment_configs', 'efficiency_and_battery', 'eff_185_batt_35.41.json')
+        os.path.join('experiment_configs', 'sample.json')
     ]
 
     for new_experiment_config_json in new_experiment_config_jsons:
