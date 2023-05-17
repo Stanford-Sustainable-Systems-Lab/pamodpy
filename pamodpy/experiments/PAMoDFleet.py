@@ -170,7 +170,7 @@ class PAMoDFleet(metaclass=MetaPAMoDFleet):
             south = last_area_zone + 3
 
             if O <= last_area_zone and D <= last_area_zone:
-                energy += self.energy_OD[O_idx + 2, D_idx + 2] + Car.compute_power * dur  # TODO: fix this relic (first two rows empty, arbitrarily)
+                energy += self.energy_OD[O_idx, D_idx] + Car.compute_power * dur  # TODO: fix this relic (first two rows empty, arbitrarily)
 
             if O == golden_gate or D == golden_gate:
                 dur += 40 / 60
