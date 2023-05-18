@@ -2,6 +2,7 @@
   "experiment_type": "PAMoDFleet",
   "algorithm": "PAMoD_optimization_gurobi",
   "region": "SF_25",
+  "results_path": null,
   "optimize_fleet_size": true,
   "optimize_infra": true,
   "use_baseline_charge_stations": false,

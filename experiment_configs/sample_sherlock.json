@@ -1,8 +1,8 @@
 {
   "experiment_type": "PAMoDFleet",
-  "algorithm": "PAMoD_optimization_pyomo",
+  "algorithm": "PAMoD_optimization_gurobi",
   "region": "SF_25",
-  "results_path": null,
+  "results_path": "$SCRATCH/pamodpy_results",
   "optimize_fleet_size": true,
   "optimize_infra": true,
   "use_baseline_charge_stations": false,
@@ -19,7 +19,7 @@
     "DC 50kW"
   ],
   "Vehicles": [
-    "2022 Nissan Sakura X"
+    "2023 Dacia Spring Essential"
   ],
   "fleet_sizes": [
     154775
