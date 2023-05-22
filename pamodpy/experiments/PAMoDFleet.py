@@ -33,7 +33,7 @@ import networkx as nx
 from .Experiment import Experiment, SF_5, SF_25, SF_190, NYC_manh
 from ..utils.load_experiment import config
 from ..utils.constants import *
-from ..plotting.plot_results import plot_PAMoDFleet_results, plot_animiation
+from ..plotting.plot_results import plot_PAMoDFleet_results, plot_animation
 from ..algorithms.PAMoD_optimization_gurobi import PAMoD_optimization_gurobi
 from ..algorithms.PAMoD_optimization_pyomo import PAMoD_optimization_pyomo
 from ..Station import Station
@@ -483,7 +483,7 @@ class PAMoDFleet(metaclass=MetaPAMoDFleet):
     def plot(self, plot_graphs=True, plot_anim=None):
         if plot_anim is not None:
             for node_type in plot_anim:
-                plot_animiation(self, node_type)
+                plot_animation(self, node_type)
         if plot_graphs:
             plot_PAMoDFleet_results(self)
 
