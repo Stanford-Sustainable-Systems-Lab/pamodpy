@@ -423,16 +423,16 @@ def heatmaps(startT, endT, experiment, power_matrix_list, vehicle_idx):
             hourly_peaks[:, hour_idx] = np.max(power_matrix_list[vehicle_idx][:, t_idx:t_idx + hour_timesteps], axis=1)
 
     map_heatmap = gpd.read_file(experiment.shp_file_path)
-    if experiment.region == "SF_190" or experiment.region == "SF_25" or experiment.region == "SF2_25":
+    if experiment.region == "SF_190" or experiment.region == "SF_25":
         map_heatmap = map_heatmap.set_index('name')
+        map_heatmap.index = map_heatmap.index.astype(int)
+        map_heatmap = map_heatmap.sort_index()
     elif experiment.region == "SF_5":
         map_heatmap = map_heatmap.set_index('id')
-    elif experiment.region == "NYC_manh":
-        pass
-    else:
-        map_heatmap = None
-    # map_heatmap.index = map_heatmap.index.astype(int)
-    # map_heatmap = map_heatmap.sort_index()
+        map_heatmap.index = map_heatmap.index.astype(int)
+        map_heatmap = map_heatmap.sort_index()
+    # else:
+    #     map_heatmap = None
 
     charging = daily_total_power / np.sum(daily_total_power)
     charging_vehicles = [np.sum(experiment.U_list[vehicle_idx][experiment.PAMoDVehicles[vehicle_idx].filter_edge_idx('charge', l, l)]) for l in experiment.locations]
