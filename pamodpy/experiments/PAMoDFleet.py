@@ -30,7 +30,7 @@ import sys
 
 import networkx as nx
 
-from .Experiment import Experiment, SF_5, SF_25, SF_190
+from .Experiment import Experiment, SF_5, SF_25, SF_190, NYC_manh
 from ..utils.load_experiment import config
 from ..utils.constants import *
 from ..plotting.plot_results import plot_PAMoDFleet_results, plot_animiation
@@ -47,6 +47,8 @@ class MetaPAMoDFleet(type):
             bases = (SF_25,)
         elif config.current_experiment_region == "SF_190":
             bases = (SF_190,)
+        elif config.current_experiment_region == "NYC_manh":
+            bases = (NYC_manh,)
         else:
             raise ValueError('No Experiment of class name "{}" found in Experiment.py.'.format(config.current_experiment_region))
         return type(name, bases, dct)
@@ -170,29 +172,29 @@ class PAMoDFleet(metaclass=MetaPAMoDFleet):
             south = last_area_zone + 3
 
             if O <= last_area_zone and D <= last_area_zone:
-                energy += self.energy_OD[O_idx, D_idx] + Car.compute_power * dur  # TODO: fix this relic (first two rows empty, arbitrarily)
+                energy += self.energy_OD[O_idx, D_idx, int(np.floor((t * self.Fleet.deltaT) % (24 / self.Fleet.deltaT)))] + Car.compute_power * dur  # TODO: fix this relic (first two rows empty, arbitrarily)
 
-            if O == golden_gate or D == golden_gate:
-                dur += 40 / 60
-                dist += 20
-                if Car.powertrain == 'electric':
-                    energy += 20 / (Car.mi_per_kWh / Car.eta_charge) + Car.compute_power * dur
-                else:
-                    energy += 20 / Car.mi_per_gal + Car.compute_power * dur / KWH_PER_GAL_GAS
-            if O == bay_bridge or D == bay_bridge:
-                dur += 20 / 60
-                dist += 15
-                if Car.powertrain == 'electric':
-                    energy += 15 / (Car.mi_per_kWh / Car.eta_charge) + Car.compute_power * dur
-                else:
-                    energy += 15 / Car.mi_per_gal + Car.compute_power * dur / KWH_PER_GAL_GAS
-            if O == south or D == south:
-                dur += 45 / 60
-                dist += 30
-                if Car.powertrain == 'electric':
-                    energy += 30 / (Car.mi_per_kWh / Car.eta_charge) + Car.compute_power * dur
-                else:
-                    energy += 30 / Car.mi_per_gal + Car.compute_power * dur / KWH_PER_GAL_GAS
+            # if O == golden_gate or D == golden_gate:
+            #     dur += 40 / 60
+            #     dist += 20
+            #     if Car.powertrain == 'electric':
+            #         energy += 20 / (Car.mi_per_kWh / Car.eta_charge) + Car.compute_power * dur
+            #     else:
+            #         energy += 20 / Car.mi_per_gal + Car.compute_power * dur / KWH_PER_GAL_GAS
+            # if O == bay_bridge or D == bay_bridge:
+            #     dur += 20 / 60
+            #     dist += 15
+            #     if Car.powertrain == 'electric':
+            #         energy += 15 / (Car.mi_per_kWh / Car.eta_charge) + Car.compute_power * dur
+            #     else:
+            #         energy += 15 / Car.mi_per_gal + Car.compute_power * dur / KWH_PER_GAL_GAS
+            # if O == south or D == south:
+            #     dur += 45 / 60
+            #     dist += 30
+            #     if Car.powertrain == 'electric':
+            #         energy += 30 / (Car.mi_per_kWh / Car.eta_charge) + Car.compute_power * dur
+            #     else:
+            #         energy += 30 / Car.mi_per_gal + Car.compute_power * dur / KWH_PER_GAL_GAS
 
             dur_deltaTs = self.Fleet.round_time(dur, min_val=1)
             if Car.powertrain == 'electric':
