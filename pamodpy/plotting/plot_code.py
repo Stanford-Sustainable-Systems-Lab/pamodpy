@@ -414,7 +414,7 @@ def heatmaps(startT, endT, experiment, power_matrix_list, vehicle_idx):
             num_veh_l.append(np.sum(experiment.X_list[vehicle_idx][nodes_l_t]))
         location_matrix[l_idx, :] = num_veh_l
     # daily_total_power = np.concatenate((np.sum(power_matrix_list[vehicle_idx], axis=1), [0, 0, 0]))
-    daily_total_power = np.sum(power_matrix_list[vehicle_idx], axis=1)  #for nyc_x
+    daily_total_power = np.sum(power_matrix_list[vehicle_idx], axis=1)  #for nyc_manh
     daily_total_location = np.sum(location_matrix[0:experiment.L, :], axis=1)
     hour_timesteps = int(np.round(1/experiment.deltaT))
     hourly_peaks = np.zeros((power_matrix_list[vehicle_idx].shape[0], experiment.T // hour_timesteps))
@@ -427,7 +427,7 @@ def heatmaps(startT, endT, experiment, power_matrix_list, vehicle_idx):
         map_heatmap = map_heatmap.set_index('name')
     elif experiment.region == "SF_5":
         map_heatmap = map_heatmap.set_index('id')
-    elif experiment.region == "NYC_X":
+    elif experiment.region == "NYC_manh":
         pass
     else:
         map_heatmap = None
