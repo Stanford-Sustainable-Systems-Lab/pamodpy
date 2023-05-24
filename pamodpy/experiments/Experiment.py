@@ -135,13 +135,9 @@ class SF_190(Experiment):
         self.shp_file_path = os.path.join(self.data_path,
                      'Justin-Luke---Academic_SF-TAZ-with-added-boundary-pass-through_ZoneSet',
                      'zone_set_SF_TAZ_with_added_boundary_pass_through.shp')
-        if config['results_path'] is not None and os.path.exists(os.path.normpath(config['results_path'])):
-            self.results_path = os.path.join(os.path.normpath(config['results_path']), self.region, self.name)
-        else:
-            self.results_path = os.path.join(os.path.dirname(__file__), '..', '..', 'results', self.region, self.name)
+        self.results_path = os.path.join(os.path.dirname(__file__), '..', '..', 'results', self.region, self.name)  # directory where results are saved
         if not os.path.exists(self.results_path):
             os.makedirs(self.results_path, exist_ok=True)
-        print("Results will be saved in {}".format(self.results_path))
         self.streetlight_df = load_streetlight(os.path.join(self.data_path,
                                                             "92009_SF_all_weekday_each_hour_added_pass_od_trip_all.csv"))
         self.locations = np.sort(self.streetlight_df['Origin Zone Name'].unique()).tolist()
@@ -170,13 +166,9 @@ class SF_5(Experiment):
         self.shp_file_path = os.path.join(self.data_path,
                      'Justin-Luke---Academic_SF_spectral_clusters_with_passthroughs_ZoneSet',
                      'zone_set_SF_spectral_clusters_with_passthroughs.shp')
-        if config['results_path'] is not None and os.path.exists(os.path.normpath(config['results_path'])):
-            self.results_path = os.path.join(os.path.normpath(config['results_path']), self.region, self.name)
-        else:
-            self.results_path = os.path.join(os.path.dirname(__file__), '..', '..', 'results', self.region, self.name)
+        self.results_path = os.path.join(os.path.dirname(__file__), '..', '..', 'results', self.region, self.name)  # directory where results are saved
         if not os.path.exists(self.results_path):
             os.makedirs(self.results_path, exist_ok=True)
-        print("Results will be saved in {}".format(self.results_path))
         self.streetlight_df = load_streetlight(os.path.join(self.data_path,
                                                             "143230_SF_5zones_weekday_hourly_passthroughs_od_trip_all.csv"))
         self.locations = np.arange(1, 9).tolist()
@@ -203,13 +195,9 @@ class SF_25(Experiment):
         self.shp_file_path = os.path.join(os.path.dirname(__file__), '..', 'data', 'SF_190',
                      'Justin-Luke---Academic_SF-TAZ-with-added-boundary-pass-through_ZoneSet',
                      'zone_set_SF_TAZ_with_added_boundary_pass_through.shp')
-        if config['results_path'] is not None and os.path.exists(os.path.normpath(config['results_path'])):
-            self.results_path = os.path.join(os.path.normpath(config['results_path']), self.region, self.name)
-        else:
-            self.results_path = os.path.join(os.path.dirname(__file__), '..', '..', 'results', self.region, self.name)
+        self.results_path = os.path.join(os.path.dirname(__file__), '..', '..', 'results', self.region, self.name)  # directory where results are saved
         if not os.path.exists(self.results_path):
             os.makedirs(self.results_path, exist_ok=True)
-        print("Results will be saved in {}".format(self.results_path))
         self.streetlight_df = None
         self.locations = np.arange(1, 29).tolist()
         self.locations_excl_passthrough = np.array(self.locations)[
@@ -278,3 +266,47 @@ class SF_25(Experiment):
             output[self.cluster_to_taz[cluster]] = data[idx]
         output[190:] = data[25:]
         return output
+
+
+class NYC_manh(Experiment):
+    def __init__(self, config):
+        super().__init__(config)
+        self.region = "NYC_manh"
+        self.data_path = os.path.join(os.path.dirname(__file__), '..', 'data', self.region)
+        self.shp_file_path = os.path.join(os.path.dirname(__file__), '..', 'data', self.region, 'manhattan_cluster.shp')
+        self.results_path = os.path.join(os.path.dirname(__file__), '..', '..', 'results', self.region, self.name)  # directory where results are saved
+        if not os.path.exists(self.results_path):
+            os.makedirs(self.results_path, exist_ok=True)
+        self.streetlight_df = None
+        self.locations = np.arange(1, 30).tolist()  # 29 manhattan clusters + 6 nyc boroughs
+        self.locations_excl_passthrough = np.array(self.locations).tolist()#[
+            #(np.array(self.locations) != 30) & (np.array(self.locations) != 31) & (np.array(self.locations) != 32) & (np.array(self.locations) != 33) & (np.array(self.locations) != 34) & (np.array(self.locations) != 35)].tolist()
+        self.energy_ODs = [np.load(
+            os.path.join(self.data_path,
+                         self.Vehicles[vehicle_idx].energies_filename)) for vehicle_idx in range(len(self.Vehicles))]  # Numpy array of OD matrix with trip energies in [kWh]
+        self.time_matrix = np.nan_to_num(np.load(os.path.join(self.data_path,
+                                                              'duration_matrix.npy')))  # (28, 28, 24) Numpy array of OD matrix with trip durations in [s]
+        self.dist_matrix = np.nan_to_num(np.load(os.path.join(self.data_path,
+                                                              'distance_matrix.npy')))  # (28, 28, 24) Numpy array of OD matrix with trip distances in [mi]
+        self.od_matrix = np.load(os.path.join(self.data_path,
+                                              'od_matrix.npy'))  # (28, 28, 24) Numpy array of OD matrix with travel volume [# vehicles]
+        # for x in itertools.product([self.locations.index(26), self.locations.index(27), self.locations.index(28)], [self.locations.index(26), self.locations.index(27), self.locations.index(28)]):  # update with borough numbers
+        #     self.od_matrix[x[0], x[1], :] = 0
+        self.revenue_matrix = self.dist_matrix * 0.91 + self.time_matrix / 60 * 0.39 + 2.20 + 2.70  # (28, 28, 24) Numpy array of OD matrix with trip revenue in [$]
+        # use_baseline_charge_stations is true
+        if self.use_baseline_charge_stations:
+            with open(os.path.join(self.data_path, 'manh_charging_stations_cluster.p'), 'rb') as f:
+                self.charge_stations = pickle.load(f)
+            desired_total_installed_capacity = 295737.0570820776 #374898.8370658811 #629912.7705068741
+            current_total_installed_capacity = 0.0
+            for l in self.locations_excl_passthrough:
+                for station in self.charge_stations[l]:
+                    for evse in station.EVSEs:
+                        current_total_installed_capacity += evse.rate * evse.num_units
+            print("Current Installed Capacity = {} kW".format(current_total_installed_capacity))
+            scaling_factor = desired_total_installed_capacity / current_total_installed_capacity
+            print("Scaling Factor = {}".format(scaling_factor))
+            for l in self.charge_stations:
+                for station in self.charge_stations[l]:
+                    for evse in station.EVSEs:
+                        evse.num_units *= scaling_factor
