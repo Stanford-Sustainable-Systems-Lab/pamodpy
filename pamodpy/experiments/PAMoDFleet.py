@@ -459,7 +459,7 @@ class PAMoDFleet(metaclass=MetaPAMoDFleet):
         self.U_list = U
         self.U_trip_charge_idle_list = U_trip_charge_idle
         self.U_rebal_list = U_rebal
-        self.costs_list = np.array([elec_energy, elec_demand, dist, revenue, fleet_cost, elec_carbon, infra, gas, gas_carbon])
+        self.costs_list = np.array([elec_energy, elec_demand, dist, revenue, fleet_cost, elec_carbon, infra, gas, gas_carbon], dtype=object)
         self.power_matrix_list = [np.zeros((len(self.locations_excl_passthrough), self.T - 1)) for _ in range(len(self.Vehicles))]
         for vehicle_idx, PAMoDVehicle in enumerate(self.PAMoDVehicles):
             for l_idx, l in enumerate(self.locations_excl_passthrough):
