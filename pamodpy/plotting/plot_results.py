@@ -52,8 +52,8 @@ def plot_PAMoDFleet_results(experiment, startT=None, endT=None, power_matrix_lis
         infra(experiment)
         infra_power(experiment)
 
-def plot_animiation(experiment, node_type):
-    print("Creating {} animiation for {}".format(node_type, experiment.name))
+def plot_animation(experiment, node_type):
+    print("Creating {} animation for {}".format(node_type, experiment.name))
 
     for vehicle_idx, PAMoDVehicle in enumerate(experiment.PAMoDVehicles):
         fig, ax = plt.subplots(figsize=(12, 8))
@@ -110,14 +110,17 @@ def plot_animiation(experiment, node_type):
         node_min = np.min(data)
         node_max = np.max(data)
 
-        SF_map = gpd.read_file(experiment.shp_file_path)
+        map_heatmap = gpd.read_file(experiment.shp_file_path)
         if experiment.region == "SF_190" or experiment.region == "SF_25":
-            SF_map = SF_map.set_index('name')
+            map_heatmap = map_heatmap.set_index('name')
+            map_heatmap.index = map_heatmap.index.astype(int)
+            map_heatmap = map_heatmap.sort_index()
+            map_heatmap['values'] = 0
         elif experiment.region == "SF_5":
-            SF_map = SF_map.set_index('id')
-        SF_map.index = SF_map.index.astype(int)
-        SF_map = SF_map.sort_index()
-        SF_map['values'] = 0
+            map_heatmap = map_heatmap.set_index('id')
+            map_heatmap.index = map_heatmap.index.astype(int)
+            map_heatmap = map_heatmap.sort_index()
+            map_heatmap['values'] = 0
 
         if experiment.region == "SF_25":
             cluster_to_taz = {
@@ -151,20 +154,20 @@ def plot_animiation(experiment, node_type):
                 28: [193]
             }
             for k, v in cluster_to_taz.items():
-                SF_map.loc[v, 'cluster'] = k
-            SF_map = SF_map.dissolve(by='cluster')
+                map_heatmap.loc[v, 'cluster'] = k
+            map_heatmap = map_heatmap.dissolve(by='cluster')
 
-        ax1 = SF_map.plot(ax=ax, column='values', cmap=plt.cm.get_cmap('OrRd'), legend=True, edgecolor='black',
+        ax1 = map_heatmap.plot(ax=ax, column='values', cmap=plt.cm.get_cmap('OrRd'), legend=True, edgecolor='black',
                           vmax=node_max, vmin=node_min)
         fig1 = ax1.figure
-        plot_polygon_collection(ax, SF_map['geometry'], values=SF_map['values'], cmap=plt.cm.get_cmap('OrRd'),
+        plot_polygon_collection(ax, map_heatmap['geometry'], values=map_heatmap['values'], cmap=plt.cm.get_cmap('OrRd'),
                                 edgecolor='black')
         cb_ax = fig1.axes[1]
         cb_ax.tick_params(labelsize=20)
         cb_ax.set_label(label1)
 
-        plt.xlim((-122.525, -122.35))
-        plt.ylim((37.7, 37.850))
+        # plt.xlim((-122.525, -122.35))
+        # plt.ylim((37.7, 37.850))
         plt.xticks([])
         plt.yticks([])
         plt.tight_layout()
@@ -173,15 +176,15 @@ def plot_animiation(experiment, node_type):
             ax.clear()
             ax.set_axis_off()
 
-            SF_map['values'] = data[:, t]
+            map_heatmap['values'] = data[:, t]
 
-            plot_polygon_collection(ax, SF_map['geometry'], values=SF_map['values'], cmap=plt.cm.get_cmap('OrRd'),
+            plot_polygon_collection(ax, map_heatmap['geometry'], values=map_heatmap['values'], cmap=plt.cm.get_cmap('OrRd'),
                                     edgecolor='black', vmin=node_min, vmax=node_max)
 
-            ax.set_title("t = {} (hour of day, sum = {})".format(t * experiment.deltaT, SF_map['values'].sum()))
+            ax.set_title("t = {} (hour of day, sum = {})".format(t * experiment.deltaT, map_heatmap['values'].sum()))
 
-            plt.xlim((-122.525, -122.35))
-            plt.ylim((37.7, 37.850))
+            # plt.xlim((-122.525, -122.35))
+            # plt.ylim((37.7, 37.850))
             plt.xticks([])
             plt.yticks([])
             plt.tight_layout()

@@ -33,7 +33,7 @@ def num_veh_each_l(time_vec, startT, endT, experiment, vehicle_idx):
     plt.yticks(fontsize=24)
     plt.ylabel("Number of Vehicles", fontsize=24)
     plt.xlabel("Time [hr]", fontsize=24)
-    plt.show()
+    # plt.show()
     fig.savefig(os.path.join(experiment.results_path, experiment.Vehicles[vehicle_idx].name, 'num_veh_each_l.png'), dpi=fig.dpi)
 
 def num_veh_each_c(time_vec, startT, endT, experiment, vehicle_idx):
@@ -57,7 +57,7 @@ def num_veh_each_c(time_vec, startT, endT, experiment, vehicle_idx):
     plt.ylabel("Number of Vehicles")
     plt.xlabel("Time [hr]")
     plt.legend()
-    plt.show()
+    # plt.show()
     fig.savefig(os.path.join(experiment.results_path, experiment.Vehicles[vehicle_idx].name, 'num_veh_each_c.png'), dpi=fig.dpi)
 
 def avg_soc(time_vec, startT, endT, experiment, vehicle_idx):
@@ -82,7 +82,7 @@ def avg_soc(time_vec, startT, endT, experiment, vehicle_idx):
     plt.yticks(fontsize=24)
     plt.ylabel("SOC [1]", fontsize=24)
     plt.xlabel("Time [hr]", fontsize=24)
-    plt.show()
+    # plt.show()
     fig.savefig(os.path.join(experiment.results_path, experiment.Vehicles[vehicle_idx].name, 'avg_soc.png'), dpi=fig.dpi)
 
 def charging_load_each_l(time_vec, startT, endT, experiment, vehicle_idx):
@@ -110,7 +110,7 @@ def charging_load_each_l(time_vec, startT, endT, experiment, vehicle_idx):
     plt.yticks(fontsize=24)
     plt.ylabel("Power [kW]", fontsize=24)
     plt.xlabel("Time [hr]", fontsize=24)
-    plt.show()
+    # plt.show()
     fig.savefig(os.path.join(experiment.results_path, experiment.Vehicles[vehicle_idx].name, 'charging_load_each_l.png'), dpi=fig.dpi)
 
 def charging_load_total(time_vec, startT, endT, experiment, vehicle_idx, top_lim=None):
@@ -134,7 +134,7 @@ def charging_load_total(time_vec, startT, endT, experiment, vehicle_idx, top_lim
         plt.ylim(top=top_lim)
     ax = plt.gca()
     ax.ticklabel_format(useOffset=False)
-    plt.show()
+    # plt.show()
     fig.savefig(os.path.join(experiment.results_path, experiment.Vehicles[vehicle_idx].name, 'charging_load_total.png'), dpi=fig.dpi)
 
 def vehicle_status(time_vec, startT, endT, experiment, vehicle_idx, top_lim=None):
@@ -209,7 +209,7 @@ def vehicle_status(time_vec, startT, endT, experiment, vehicle_idx, top_lim=None
     if top_lim is not None:
         plt.ylim(top=top_lim)
     plt.legend(fontsize=20)
-    plt.show()
+    # plt.show()
     fig.savefig(os.path.join(experiment.results_path, experiment.Vehicles[vehicle_idx].name, 'vehicle_status.png'), dpi=200)
 
 def charging_arr_worker(idx, experiment, vehicle_idx):
@@ -243,7 +243,7 @@ def travel_demand(time_vec, experiment):
     plt.yticks(fontsize=24)
     plt.ylabel("Total Travel Demand Flow [# / {}min]".format(experiment.deltaT * 60), fontsize=24)
     plt.xlabel("Time [hr]", fontsize=24)
-    plt.show()
+    # plt.show()
     fig.savefig(os.path.join(experiment.results_path, 'travel_demand.png'), dpi=fig.dpi)
 
 def location_timeseries(l, time_vec, startT, endT, experiment, vehicle_idx):
@@ -308,7 +308,7 @@ def location_timeseries(l, time_vec, startT, endT, experiment, vehicle_idx):
     # ax2.set_ylabel('Average SOC [1]', color='grey')
     # ax2.tick_params(axis='y', labelcolor='grey')#, labelsize=24)
 
-    plt.show()
+    # plt.show()
     fig.savefig(os.path.join(experiment.results_path, experiment.Vehicles[vehicle_idx].name, 'location_{}_timeseries.png'.format(l)), dpi=fig.dpi)
 
     # fig = plt.figure(dpi=200, figsize=(12, 8))
@@ -331,7 +331,7 @@ def infra(experiment, top_lim=None):
     plt.ylabel("Number of plugs")
     if top_lim is not None:
         plt.ylim(top=top_lim)
-    plt.show()
+    # plt.show()
     fig.savefig(os.path.join(experiment.results_path, 'infra.png'), dpi=200)
 
 def infra_power(experiment, top_lim=None):
@@ -348,7 +348,7 @@ def infra_power(experiment, top_lim=None):
     plt.ylabel("Power capacity installed [kW]")
     if top_lim is not None:
         plt.ylim(top=top_lim)
-    plt.show()
+    # plt.show()
     fig.savefig(os.path.join(experiment.results_path, 'infra_power.png'), dpi=200)
 
     total_installed_capacity = 0.0
@@ -381,7 +381,7 @@ def charging_power(experiment, vehicle_idx, top_lim=None):
     plt.ylabel("Number of vehicles charging")
     if top_lim is not None:
         plt.ylim(top=top_lim)
-    plt.show()
+    # plt.show()
     fig.savefig(os.path.join(experiment.results_path, experiment.Vehicles[vehicle_idx].name, 'charging_power.png'), dpi=200)
 
 def charging_power_time(time_vec, experiment, vehicle_idx, top_lim=None):
@@ -400,7 +400,7 @@ def charging_power_time(time_vec, experiment, vehicle_idx, top_lim=None):
     plt.ylabel("Number of vehicles charging")
     if top_lim is not None:
         plt.ylim(top=top_lim)
-    plt.show()
+    # plt.show()
     fig.savefig(os.path.join(experiment.results_path, experiment.Vehicles[vehicle_idx].name, 'charging_power_time.png'), dpi=200)
 
 def heatmaps(startT, endT, experiment, power_matrix_list, vehicle_idx):
@@ -413,7 +413,8 @@ def heatmaps(startT, endT, experiment, power_matrix_list, vehicle_idx):
             nodes_l_t = experiment.PAMoDVehicles[vehicle_idx].filter_node_idx(l, None, t)
             num_veh_l.append(np.sum(experiment.X_list[vehicle_idx][nodes_l_t]))
         location_matrix[l_idx, :] = num_veh_l
-    daily_total_power = np.concatenate((np.sum(power_matrix_list[vehicle_idx], axis=1), [0, 0, 0]))
+    # daily_total_power = np.concatenate((np.sum(power_matrix_list[vehicle_idx], axis=1), [0, 0, 0]))
+    daily_total_power = np.sum(power_matrix_list[vehicle_idx], axis=1)  #for nyc_manh
     daily_total_location = np.sum(location_matrix[0:experiment.L, :], axis=1)
     hour_timesteps = int(np.round(1/experiment.deltaT))
     hourly_peaks = np.zeros((power_matrix_list[vehicle_idx].shape[0], experiment.T // hour_timesteps))
@@ -421,15 +422,17 @@ def heatmaps(startT, endT, experiment, power_matrix_list, vehicle_idx):
         if t_idx + hour_timesteps <= experiment.T - 1:
             hourly_peaks[:, hour_idx] = np.max(power_matrix_list[vehicle_idx][:, t_idx:t_idx + hour_timesteps], axis=1)
 
-    SF_map = gpd.read_file(experiment.shp_file_path)
-    if experiment.region == "SF_190" or experiment.region == "SF_25" or experiment.region == "SF2_25":
-        SF_map = SF_map.set_index('name')
+    map_heatmap = gpd.read_file(experiment.shp_file_path)
+    if experiment.region == "SF_190" or experiment.region == "SF_25":
+        map_heatmap = map_heatmap.set_index('name')
+        map_heatmap.index = map_heatmap.index.astype(int)
+        map_heatmap = map_heatmap.sort_index()
     elif experiment.region == "SF_5":
-        SF_map = SF_map.set_index('id')
-    else:
-        SF_map = None
-    SF_map.index = SF_map.index.astype(int)
-    SF_map = SF_map.sort_index()
+        map_heatmap = map_heatmap.set_index('id')
+        map_heatmap.index = map_heatmap.index.astype(int)
+        map_heatmap = map_heatmap.sort_index()
+    # else:
+    #     map_heatmap = None
 
     charging = daily_total_power / np.sum(daily_total_power)
     charging_vehicles = [np.sum(experiment.U_list[vehicle_idx][experiment.PAMoDVehicles[vehicle_idx].filter_edge_idx('charge', l, l)]) for l in experiment.locations]
@@ -446,8 +449,8 @@ def heatmaps(startT, endT, experiment, power_matrix_list, vehicle_idx):
         infra_cap += data
         infra_cap_rates[:, evse_idx] += data
     infra_vmax = np.amax(infra_cap) / 1000
-    infra_cap = np.append(infra_cap, [0, 0, 0])
-    infra_cap_rates = np.concatenate((infra_cap_rates, np.zeros((3, len(experiment.EVSEs)))))
+    # infra_cap = np.append(infra_cap, [0, 0, 0])
+    # infra_cap_rates = np.concatenate((infra_cap_rates, np.zeros((3, len(experiment.EVSEs)))))
 
     if experiment.region == "SF_25" or experiment.region == "SF2_25":
         cluster_to_taz = {
@@ -481,17 +484,17 @@ def heatmaps(startT, endT, experiment, power_matrix_list, vehicle_idx):
             28: [193]
         }
         for k, v in cluster_to_taz.items():
-            SF_map.loc[v, 'cluster'] = k
-        SF_map = SF_map.dissolve(by='cluster')
-    SF_map['charging'] = charging
-    SF_map['charging_vehicles'] = charging_vehicles
-    SF_map['num_veh'] = num_veh
-    SF_map['demand_dep'] = demand_dep
-    SF_map['demand_arr'] = demand_arr
+            map_heatmap.loc[v, 'cluster'] = k
+        map_heatmap = map_heatmap.dissolve(by='cluster')
+    map_heatmap['charging'] = charging
+    map_heatmap['charging_vehicles'] = charging_vehicles
+    map_heatmap['num_veh'] = num_veh
+    map_heatmap['demand_dep'] = demand_dep
+    map_heatmap['demand_arr'] = demand_arr
     if experiment.optimize_infra or experiment.use_baseline_charge_stations:
-        SF_map['infra_cap'] = infra_cap / 1000
+        map_heatmap['infra_cap'] = infra_cap / 1000
         for evse_idx, evse in enumerate(experiment.EVSEs):
-            SF_map['infra_cap_{}'.format(evse.rate)] = infra_cap_rates[:, evse_idx] / 1000
+            map_heatmap['infra_cap_{}'.format(evse.rate)] = infra_cap_rates[:, evse_idx] / 1000
 
     column_names = ['charging', 'charging_vehicles', 'num_veh', 'demand_dep', 'demand_arr']
     titles = ['Distribution of Daily Total Charging: Power',
@@ -514,18 +517,18 @@ def heatmaps(startT, endT, experiment, power_matrix_list, vehicle_idx):
 
     for column_name, title, filename in zip(column_names, titles, filenames):
         fig, ax = plt.subplots(figsize=(12, 8))
-        ax1 = SF_map.plot(ax=ax, column=column_name, cmap=plt.cm.get_cmap('OrRd'), legend=True, edgecolor='black')#, vmin=0, vmax=infra_vmax)
+        ax1 = map_heatmap.plot(ax=ax, column=column_name, cmap=plt.cm.get_cmap('OrRd'), legend=True, edgecolor='black')#, vmin=0, vmax=infra_vmax)
         fig1 = ax1.figure
-        plot_polygon_collection(ax, SF_map['geometry'], values=SF_map[column_name], cmap=plt.cm.get_cmap('OrRd'),
+        plot_polygon_collection(ax, map_heatmap['geometry'], values=map_heatmap[column_name], cmap=plt.cm.get_cmap('OrRd'),
                                 edgecolor='black')#, vmin=0, vmax=infra_vmax)
-        SF_map.apply(lambda x: ax.annotate(int(x.name), xy=x.geometry.centroid.coords[0], ha='center', fontsize=15), axis=1)
-        plt.xlim((-122.525, -122.35))
-        plt.ylim((37.7, 37.850))
+        map_heatmap.apply(lambda x: ax.annotate(int(x.name) + 1, xy=x.geometry.centroid.coords[0], ha='center', fontsize=15), axis=1)
+        # plt.xlim((-122.525, -122.35))
+        # plt.ylim((37.7, 37.850))
         plt.xticks([])
         plt.yticks([])
         plt.title(title, fontsize=20)
         cb_ax = fig1.axes[1]
         cb_ax.tick_params(labelsize=20)
         plt.tight_layout()
-        plt.show()
+        # plt.show()
         fig.savefig(os.path.join(experiment.results_path, filename), dpi=200)
