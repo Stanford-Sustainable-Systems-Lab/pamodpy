@@ -428,10 +428,10 @@ class PAMoDFleet(metaclass=MetaPAMoDFleet):
             PAMoDVehicle.G_edges_O_arr = np.array(list(PAMoDVehicle.G.edges()))[:, 0, 0]
             PAMoDVehicle.G_edges_D_arr = np.array(list(PAMoDVehicle.G.edges()))[:, 1, 0]
             PAMoDVehicle.G_edges_t_arr = np.array(list(PAMoDVehicle.G.edges()))[:, 0, 2]
-            PAMoDVehicle.G_edges_road_mask = (np.array(list(PAMoDVehicle.G.edges(data='uMax_road', default=0)))[:, 2] != 0)
-            PAMoDVehicle.G_edges_charge_mask = (np.array(list(PAMoDVehicle.G.edges(data='energy_grid', default=0)))[:, 2] != 0)
-            PAMoDVehicle.G_edges_evse_id_arr = np.array(list(PAMoDVehicle.G.edges(data='evse_id', default=None)))[:, 2]
-            PAMoDVehicle.G_edges_road_idle_mask = np.array(list(PAMoDVehicle.G.edges(data='idle', default=False)))[:, 2].astype(bool)
+            PAMoDVehicle.G_edges_road_mask = (np.array(list(PAMoDVehicle.G.edges(data='uMax_road', default=0, dtype=object)))[:, 2] != 0)
+            PAMoDVehicle.G_edges_charge_mask = (np.array(list(PAMoDVehicle.G.edges(data='energy_grid', default=0, dtype=object)))[:, 2] != 0)
+            PAMoDVehicle.G_edges_evse_id_arr = np.array(list(PAMoDVehicle.G.edges(data='evse_id', default=None, dtype=object)))[:, 2]
+            PAMoDVehicle.G_edges_road_idle_mask = np.array(list(PAMoDVehicle.G.edges(data='idle', default=False, dtype=object)))[:, 2].astype(bool)
             PAMoDVehicle.G_nodes_arr = np.array(PAMoDVehicle.G.nodes())
 
             if PAMoDVehicle.Vehicle.powertrain == 'electric':
