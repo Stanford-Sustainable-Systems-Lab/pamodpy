@@ -413,8 +413,10 @@ def heatmaps(startT, endT, experiment, power_matrix_list, vehicle_idx):
             nodes_l_t = experiment.PAMoDVehicles[vehicle_idx].filter_node_idx(l, None, t)
             num_veh_l.append(np.sum(experiment.X_list[vehicle_idx][nodes_l_t]))
         location_matrix[l_idx, :] = num_veh_l
-    # daily_total_power = np.concatenate((np.sum(power_matrix_list[vehicle_idx], axis=1), [0, 0, 0]))
-    daily_total_power = np.sum(power_matrix_list[vehicle_idx], axis=1)  #for nyc_manh
+    if experiment.region in ["SF_190", "SF_25", "SF_5"]:
+        daily_total_power = np.concatenate((np.sum(power_matrix_list[vehicle_idx], axis=1), [0, 0, 0]))
+    else:
+        daily_total_power = np.sum(power_matrix_list[vehicle_idx], axis=1)  #for nyc_manh
     daily_total_location = np.sum(location_matrix[0:experiment.L, :], axis=1)
     hour_timesteps = int(np.round(1/experiment.deltaT))
     hourly_peaks = np.zeros((power_matrix_list[vehicle_idx].shape[0], experiment.T // hour_timesteps))
@@ -431,8 +433,10 @@ def heatmaps(startT, endT, experiment, power_matrix_list, vehicle_idx):
         map_heatmap = map_heatmap.set_index('id')
         map_heatmap.index = map_heatmap.index.astype(int)
         map_heatmap = map_heatmap.sort_index()
-    # else:
-    #     map_heatmap = None
+    elif experiment.region == "NYC_manh":
+        pass
+    else:
+        map_heatmap = None
 
     charging = daily_total_power / np.sum(daily_total_power)
     charging_vehicles = [np.sum(experiment.U_list[vehicle_idx][experiment.PAMoDVehicles[vehicle_idx].filter_edge_idx('charge', l, l)]) for l in experiment.locations]
@@ -449,8 +453,9 @@ def heatmaps(startT, endT, experiment, power_matrix_list, vehicle_idx):
         infra_cap += data
         infra_cap_rates[:, evse_idx] += data
     infra_vmax = np.amax(infra_cap) / 1000
-    # infra_cap = np.append(infra_cap, [0, 0, 0])
-    # infra_cap_rates = np.concatenate((infra_cap_rates, np.zeros((3, len(experiment.EVSEs)))))
+    if experiment.region in ["SF_190", "SF_25", "SF_5"]:
+        infra_cap = np.append(infra_cap, [0, 0, 0])
+        infra_cap_rates = np.concatenate((infra_cap_rates, np.zeros((3, len(experiment.EVSEs)))))
 
     if experiment.region == "SF_25" or experiment.region == "SF2_25":
         cluster_to_taz = {
@@ -521,7 +526,11 @@ def heatmaps(startT, endT, experiment, power_matrix_list, vehicle_idx):
         fig1 = ax1.figure
         plot_polygon_collection(ax, map_heatmap['geometry'], values=map_heatmap[column_name], cmap=plt.cm.get_cmap('OrRd'),
                                 edgecolor='black')#, vmin=0, vmax=infra_vmax)
-        map_heatmap.apply(lambda x: ax.annotate(int(x.name) + 1, xy=x.geometry.centroid.coords[0], ha='center', fontsize=15), axis=1)
+        if experiment.region in ["SF_190", "SF_25", "SF_5"]:
+            map_heatmap.apply(
+                lambda x: ax.annotate(int(x.name), xy=x.geometry.centroid.coords[0], ha='center', fontsize=15), axis=1)
+        else:
+            map_heatmap.apply(lambda x: ax.annotate(int(x.name) + 1, xy=x.geometry.centroid.coords[0], ha='center', fontsize=15), axis=1)
         # plt.xlim((-122.525, -122.35))
         # plt.ylim((37.7, 37.850))
         plt.xticks([])
