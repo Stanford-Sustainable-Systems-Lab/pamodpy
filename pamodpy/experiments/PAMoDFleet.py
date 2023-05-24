@@ -174,7 +174,7 @@ class PAMoDFleet(metaclass=MetaPAMoDFleet):
             if O <= last_area_zone and D <= last_area_zone:
                 energy += self.energy_OD[O_idx, D_idx, int(np.floor((t * self.Fleet.deltaT) % (24 / self.Fleet.deltaT)))] + Car.compute_power * dur  # TODO: fix this relic (first two rows empty, arbitrarily)
 
-            if self.region in ["SF_190", "SF_25", "SF_5"]:
+            if self.Fleet.region in ["SF_190", "SF_25", "SF_5"]:
                 if O == golden_gate or D == golden_gate:
                     dur += 40 / 60
                     dist += 20
@@ -431,10 +431,10 @@ class PAMoDFleet(metaclass=MetaPAMoDFleet):
             PAMoDVehicle.G_edges_O_arr = np.array(list(PAMoDVehicle.G.edges()))[:, 0, 0]
             PAMoDVehicle.G_edges_D_arr = np.array(list(PAMoDVehicle.G.edges()))[:, 1, 0]
             PAMoDVehicle.G_edges_t_arr = np.array(list(PAMoDVehicle.G.edges()))[:, 0, 2]
-            PAMoDVehicle.G_edges_road_mask = (np.array(list(PAMoDVehicle.G.edges(data='uMax_road', default=0, dtype=object)))[:, 2] != 0)
-            PAMoDVehicle.G_edges_charge_mask = (np.array(list(PAMoDVehicle.G.edges(data='energy_grid', default=0, dtype=object)))[:, 2] != 0)
-            PAMoDVehicle.G_edges_evse_id_arr = np.array(list(PAMoDVehicle.G.edges(data='evse_id', default=None, dtype=object)))[:, 2]
-            PAMoDVehicle.G_edges_road_idle_mask = np.array(list(PAMoDVehicle.G.edges(data='idle', default=False, dtype=object)))[:, 2].astype(bool)
+            PAMoDVehicle.G_edges_road_mask = (np.array(list(PAMoDVehicle.G.edges(data='uMax_road', default=0)), dtype=object)[:, 2] != 0)
+            PAMoDVehicle.G_edges_charge_mask = (np.array(list(PAMoDVehicle.G.edges(data='energy_grid', default=0)), dtype=object)[:, 2] != 0)
+            PAMoDVehicle.G_edges_evse_id_arr = np.array(list(PAMoDVehicle.G.edges(data='evse_id', default=None)), dtype=object)[:, 2]
+            PAMoDVehicle.G_edges_road_idle_mask = np.array(list(PAMoDVehicle.G.edges(data='idle', default=False)), dtype=object)[:, 2].astype(bool)
             PAMoDVehicle.G_nodes_arr = np.array(PAMoDVehicle.G.nodes())
 
             if PAMoDVehicle.Vehicle.powertrain == 'electric':
