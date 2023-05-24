@@ -166,8 +166,9 @@ def plot_animation(experiment, node_type):
         cb_ax.tick_params(labelsize=20)
         cb_ax.set_label(label1)
 
-        # plt.xlim((-122.525, -122.35))
-        # plt.ylim((37.7, 37.850))
+        if experiment.region in ["SF_190", "SF_25", "SF_5"]:
+            plt.xlim((-122.525, -122.35))
+            plt.ylim((37.7, 37.850))
         plt.xticks([])
         plt.yticks([])
         plt.tight_layout()
@@ -183,8 +184,9 @@ def plot_animation(experiment, node_type):
 
             ax.set_title("t = {} (hour of day, sum = {})".format(t * experiment.deltaT, map_heatmap['values'].sum()))
 
-            # plt.xlim((-122.525, -122.35))
-            # plt.ylim((37.7, 37.850))
+            if experiment.region in ["SF_190", "SF_25", "SF_5"]:
+                plt.xlim((-122.525, -122.35))
+                plt.ylim((37.7, 37.850))
             plt.xticks([])
             plt.yticks([])
             plt.tight_layout()
