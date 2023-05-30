@@ -135,12 +135,12 @@ class SF_190(Experiment):
         self.shp_file_path = os.path.join(self.data_path,
                      'Justin-Luke---Academic_SF-TAZ-with-added-boundary-pass-through_ZoneSet',
                      'zone_set_SF_TAZ_with_added_boundary_pass_through.shp')
-        if config['results_path'] is not None and os.path.exists(os.path.normpath(config['results_path'])):
-            self.results_path = os.path.join(os.path.normpath(config['results_path']), self.region, self.name)
+        if config['results_path'] is not None and os.path.exists(os.path.expandvars(os.path.normpath(config['results_path']))):
+            self.results_path = os.path.join(os.path.normpath(os.path.expandvars(config['results_path'])), self.region, self.name)
         else:
             self.results_path = os.path.join(os.path.dirname(__file__), '..', '..', 'results', self.region, self.name)
-        if not os.path.exists(self.results_path):
-            os.makedirs(self.results_path, exist_ok=True)
+            if not os.path.exists(self.results_path):
+                os.makedirs(self.results_path, exist_ok=True)
         print("Results will be saved in {}".format(self.results_path))
         self.streetlight_df = load_streetlight(os.path.join(self.data_path,
                                                             "92009_SF_all_weekday_each_hour_added_pass_od_trip_all.csv"))
@@ -170,12 +170,14 @@ class SF_5(Experiment):
         self.shp_file_path = os.path.join(self.data_path,
                      'Justin-Luke---Academic_SF_spectral_clusters_with_passthroughs_ZoneSet',
                      'zone_set_SF_spectral_clusters_with_passthroughs.shp')
-        if config['results_path'] is not None and os.path.exists(os.path.normpath(config['results_path'])):
-            self.results_path = os.path.join(os.path.normpath(config['results_path']), self.region, self.name)
+        if config['results_path'] is not None and os.path.exists(
+                os.path.expandvars(os.path.normpath(config['results_path']))):
+            self.results_path = os.path.join(os.path.normpath(os.path.expandvars(config['results_path'])), self.region,
+                                             self.name)
         else:
             self.results_path = os.path.join(os.path.dirname(__file__), '..', '..', 'results', self.region, self.name)
-        if not os.path.exists(self.results_path):
-            os.makedirs(self.results_path, exist_ok=True)
+            if not os.path.exists(self.results_path):
+                os.makedirs(self.results_path, exist_ok=True)
         print("Results will be saved in {}".format(self.results_path))
         self.streetlight_df = load_streetlight(os.path.join(self.data_path,
                                                             "143230_SF_5zones_weekday_hourly_passthroughs_od_trip_all.csv"))
@@ -203,12 +205,14 @@ class SF_25(Experiment):
         self.shp_file_path = os.path.join(os.path.dirname(__file__), '..', 'data', 'SF_190',
                      'Justin-Luke---Academic_SF-TAZ-with-added-boundary-pass-through_ZoneSet',
                      'zone_set_SF_TAZ_with_added_boundary_pass_through.shp')
-        if config['results_path'] is not None and os.path.exists(os.path.normpath(config['results_path'])):
-            self.results_path = os.path.join(os.path.normpath(config['results_path']), self.region, self.name)
+        if config['results_path'] is not None and os.path.exists(
+                os.path.expandvars(os.path.normpath(config['results_path']))):
+            self.results_path = os.path.join(os.path.normpath(os.path.expandvars(config['results_path'])), self.region,
+                                             self.name)
         else:
             self.results_path = os.path.join(os.path.dirname(__file__), '..', '..', 'results', self.region, self.name)
-        if not os.path.exists(self.results_path):
-            os.makedirs(self.results_path, exist_ok=True)
+            if not os.path.exists(self.results_path):
+                os.makedirs(self.results_path, exist_ok=True)
         print("Results will be saved in {}".format(self.results_path))
         self.streetlight_df = None
         self.locations = np.arange(1, 29).tolist()
@@ -286,12 +290,14 @@ class NYC_manh(Experiment):
         self.region = "NYC_manh"
         self.data_path = os.path.join(os.path.dirname(__file__), '..', 'data', self.region)
         self.shp_file_path = os.path.join(os.path.dirname(__file__), '..', 'data', self.region, 'manhattan_cluster.shp')
-        if config['results_path'] is not None and os.path.exists(os.path.normpath(config['results_path'])):
-            self.results_path = os.path.join(os.path.normpath(config['results_path']), self.region, self.name)
+        if config['results_path'] is not None and os.path.exists(
+                os.path.expandvars(os.path.normpath(config['results_path']))):
+            self.results_path = os.path.join(os.path.normpath(os.path.expandvars(config['results_path'])), self.region,
+                                             self.name)
         else:
             self.results_path = os.path.join(os.path.dirname(__file__), '..', '..', 'results', self.region, self.name)
-        if not os.path.exists(self.results_path):
-            os.makedirs(self.results_path, exist_ok=True)
+            if not os.path.exists(self.results_path):
+                os.makedirs(self.results_path, exist_ok=True)
         print("Results will be saved in {}".format(self.results_path))
         self.streetlight_df = None
         self.locations = np.arange(1, 30).tolist()  # 29 manhattan clusters + 6 nyc boroughs
