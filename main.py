@@ -8,8 +8,9 @@ def main():
         # os.path.join('experiment_configs', 'efficiency_and_battery', 'eff_185_batt_29.16.json'),
         # os.path.join('experiment_configs', 'efficiency_and_battery', 'eff_185_batt_31.99.json'),
         # os.path.join('experiment_configs', 'efficiency_and_battery', 'eff_185_batt_35.41.json')
-        os.path.join('experiment_configs', 'sample_sherlock.json'),
-        # os.path.join('experiment_configs', 'ioniq_electric_hybrid_pcarb0_cost31_sherlock.json')
+        # os.path.join('experiment_configs', 'sample_sherlock.json'),
+        # os.path.join('experiment_configs', 'ioniq_electric_hybrid_pcarb0_price31_sherlock.json'),
+        os.path.join('experiment_configs', 'ioniq_electric_hybrid_pcarb0_price0_sherlock.json')
         # os.path.join('experiment_configs', 'nyc_3hr_base_infra.json'),
         # os.path.join('experiment_configs', 'nyc_3hr_opt_infra.json')
     ]

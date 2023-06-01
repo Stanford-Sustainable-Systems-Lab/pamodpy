@@ -18,4 +18,4 @@ eff_185_batt_26.8,Dacia,Spring,2023,Essential,electric,970,Af,Cd,0.01,26.8,6.6,3
 eff_185_batt_29.16,Dacia,Spring,2023,Essential,electric,970,Af,Cd,0.01,29.16,6.6,30,3.358763201,NA,21872,energies_eff_185.npy
 eff_185_batt_31.99,Dacia,Spring,2023,Essential,electric,970,Af,Cd,0.01,31.99,6.6,30,3.358763201,NA,21872,energies_eff_185.npy
 eff_185_batt_35.41,Dacia,Spring,2023,Essential,electric,970,Af,Cd,0.01,35.41,6.6,30,3.358763201,NA,21872,energies_eff_185.npy
-hyundai_ioniq_price_25350,Hyundai,IONIQ Electric,2021,SE,electric,1529.06,Af,0.25,0.01,38.3,7.2,50,4.502689799,NA,25350,energies_2021_Hyundai_IONIQ_Electric_SE.npy
+ioniq_elec_price_25350,Hyundai,IONIQ Electric,2021,SE,electric,1529.06,Af,0.25,0.01,38.3,7.2,50,4.502689799,NA,25350,energies_2021_Hyundai_IONIQ_Electric_SE.npy
