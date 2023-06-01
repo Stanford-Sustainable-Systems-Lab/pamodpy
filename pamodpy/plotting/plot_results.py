@@ -115,12 +115,10 @@ def plot_animation(experiment, node_type):
             map_heatmap = map_heatmap.set_index('name')
             map_heatmap.index = map_heatmap.index.astype(int)
             map_heatmap = map_heatmap.sort_index()
-            map_heatmap['values'] = 0
         elif experiment.region == "SF_5":
             map_heatmap = map_heatmap.set_index('id')
             map_heatmap.index = map_heatmap.index.astype(int)
             map_heatmap = map_heatmap.sort_index()
-            map_heatmap['values'] = 0
 
         if experiment.region == "SF_25":
             cluster_to_taz = {
@@ -157,6 +155,7 @@ def plot_animation(experiment, node_type):
                 map_heatmap.loc[v, 'cluster'] = k
             map_heatmap = map_heatmap.dissolve(by='cluster')
 
+        map_heatmap['values'] = 0
         ax1 = map_heatmap.plot(ax=ax, column='values', cmap=plt.cm.get_cmap('OrRd'), legend=True, edgecolor='black',
                           vmax=node_max, vmin=node_min)
         fig1 = ax1.figure
