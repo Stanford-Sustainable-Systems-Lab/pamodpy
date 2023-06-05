@@ -11,7 +11,7 @@
   "num_hours": 3,
   "start_hour": 12,
   "deltaC": 0.5,
-  "batt_cap_range": 0.8,
+  "batt_cap_range": 0.7,
   "charge_throttle": false,
   "EVSEs": [
     "AC 7.7kW",

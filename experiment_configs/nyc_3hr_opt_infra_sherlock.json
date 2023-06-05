@@ -11,7 +11,7 @@
   "num_hours": 3,
   "start_hour": 12,
   "deltaC": 0.5, 
-  "batt_cap_range": 0.8,
+  "batt_cap_range": 0.7,
   "charge_throttle": false,
   "EVSEs": [
     "AC 7.7kW",
@@ -24,9 +24,9 @@
   "fleet_sizes": [
     18479031
   ],
-  "p_travel": 0.0770,
-  "p_ownership_excl_deprec": 1536,
+  "p_travel": 0.0794,
+  "p_ownership_excl_deprec": 2263,
   "p_travel_ICE": 0.0878,
-  "p_gas": 4.127,
+  "p_gas": 3.010653846,
   "p_carbon": 0
 }
