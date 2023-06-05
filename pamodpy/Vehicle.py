@@ -6,11 +6,6 @@ from .utils.constants import PATH_TO_CAR_PARAMS
 class Vehicle():
     def __init__(self, name):
         df = pd.read_csv(PATH_TO_CAR_PARAMS)
-        if name not in df['name'].values:
-            print('Warning: vehicle with name "{}" not found.'.format(name) +
-                  '\nHere is a list of available names from "Vehicle_parameters.csv":\n{}'.format(df['name']) +
-                  '\nDefaulting to "2022 Dacia Spring Comfort"')
-            name = "2022 Dacia Spring Comfort"
         idx = df.index[df['name'] == name]
         self.name = name
         self.make = df.loc[idx]['make'].values[0]
