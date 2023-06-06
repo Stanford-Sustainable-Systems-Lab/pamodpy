@@ -373,7 +373,7 @@ def PAMoD_optimization_gurobi(experiment):
                 if output is not None:
                     U_rebal[output[0]] = output[1]
             U_rebal_list.append(U_rebal)
-            U_rebal_dist_costs.append((U_rebal @ PAMoDVehicle.Dist) * experiment.p_travel  * U_const)
+            U_rebal_dist_costs.append((U_rebal @ PAMoDVehicle.Dist) * experiment.p_travel * U_const)
             del outputs
             U_trip_charge_idle = U_value - U_rebal
             U_trip_charge_idle_list.append(U_trip_charge_idle)
@@ -423,7 +423,7 @@ def PAMoD_optimization_gurobi(experiment):
             elec_carbon_final = 0
 
 
-        return [X_list, np.array(U_value_list) * U_const, np.array(U_trip_charge_idle_list) * U_const, np.array(U_rebal_list) * U_const,
+        return [np.array(X_list, dtype=object), np.array(U_value_list, dtype=object) * U_const, np.array(U_trip_charge_idle_list, dtype=object) * U_const, np.array(U_rebal_list, dtype=object) * U_const,
                 elec_energy_final,
                 elec_demand_final,
                 dist.getValue() * U_const,
