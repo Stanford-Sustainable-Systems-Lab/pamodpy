@@ -293,6 +293,7 @@ def PAMoD_optimization_gurobi(experiment):
                 # m.Params.BarConvTol = 1e-10     # default is 1e-8; make tighter to spend less time in crossover
                 m.Params.Crossover = 0
                 m.Params.BarConvTol = 1e-6     # default is 1e-8; make looser if crossover is off to terminate sooner
+                m.Params.Threads = 54
                 # m.Params.Presolve = 2             # default is -1 (auto); 2 is aggressive
                 # m.Params.BarOrder = 1             # default is -1 (auto); 0 is Approximate Minimum Degree, 1 is Nested Dissection (usual?)
 
