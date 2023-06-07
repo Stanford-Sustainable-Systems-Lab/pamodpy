@@ -5,9 +5,6 @@ import config
 
 def main():
     new_experiment_config_jsons = [
-        os.path.join('experiment_configs', 'efficiency_and_battery', 'eff_215_batt_26.8.json'),
-        os.path.join('experiment_configs', 'efficiency_and_battery', 'eff_200_batt_26.8.json'),
-        os.path.join('experiment_configs', 'efficiency_and_battery', 'eff_185_batt_26.8.json'),
         os.path.join('experiment_configs', 'efficiency_and_battery', 'eff_170_batt_26.8.json'),
         os.path.join('experiment_configs', 'efficiency_and_battery', 'eff_155_batt_26.8.json'),
         os.path.join('experiment_configs', 'efficiency_and_battery', 'eff_140_batt_26.8.json'),
@@ -35,6 +32,7 @@ def main():
 
     past_experiment_paths = [
         # 'results/NYC_manh/nyc_3hr_opt_infra/PAMoDFleet/nyc_3hr_opt_infra.p'
+        # os.path.join('experiment_configs', 'efficiency_and_battery', 'eff_185_batt_26.8.json'),
         ]
 
     for past_experiment_path in past_experiment_paths:
