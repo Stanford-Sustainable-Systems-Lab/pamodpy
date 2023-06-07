@@ -11,10 +11,12 @@ name,make,model,year,trim,powertrain,m,Af,Cd,Cr,batt_cap,max_charge_rate_AC,max_
 2023 Dacia Spring Essential,Dacia,Spring,2023,Essential,electric,970,Af,Cd,0.01,26.8,6.6,30,4.470296347,NA,21872,energies_2023_Dacia_Spring_Essential.npy
 2023 Chevrolet Bolt EV 1LT,Chevrolet,Bolt EV,2023,1LT,electric,1628,Af,Cd,0.01,65,11.5,55,3.932729065,NA,26500,energies_2023_Chevrolet_Bolt_EV_1LT.npy
 2023 Tesla Model 3 Long Range AWD,Tesla,Model 3,2023,Long Range AWD,electric,1900,Af,Cd,0.01,82,11.5,250,4.198454002,NA,47240,energies_2023_Tesla_Model_3_Long_Range_AWD.npy
+2023 Jaguar I-PACE S,Jaguar,I-PACE,2023,S,electric,2670,Af,Cd,0.01,90,11,104,2.82441451,NA,71300,energies_2023_Jaguar_I-PACE_S.npy
 eff_140_batt_26.8,Dacia,Spring,2023,Essential,electric,970,Af,Cd,0.01,26.8,6.6,30,4.438365659,NA,21872,energies_eff_140.npy
 eff_155_batt_26.8,Dacia,Spring,2023,Essential,electric,970,Af,Cd,0.01,26.8,6.6,30,4.008846402,NA,21872,energies_eff_155.npy
 eff_170_batt_26.8,Dacia,Spring,2023,Essential,electric,970,Af,Cd,0.01,26.8,6.6,30,3.65512466,NA,21872,energies_eff_170.npy
 eff_185_batt_26.8,Dacia,Spring,2023,Essential,electric,970,Af,Cd,0.01,26.8,6.6,30,3.358763201,NA,21872,energies_eff_185.npy
+eff_230_batt_26.8,Dacia,Spring,2023,Essential,electric,970,Af,Cd,0.01,26.8,6.6,30,2.701613879,NA,21872,energies_eff_230.npy
 eff_185_batt_29.16,Dacia,Spring,2023,Essential,electric,970,Af,Cd,0.01,29.16,6.6,30,3.358763201,NA,21872,energies_eff_185.npy
 eff_185_batt_31.99,Dacia,Spring,2023,Essential,electric,970,Af,Cd,0.01,31.99,6.6,30,3.358763201,NA,21872,energies_eff_185.npy
 eff_185_batt_35.41,Dacia,Spring,2023,Essential,electric,970,Af,Cd,0.01,35.41,6.6,30,3.358763201,NA,21872,energies_eff_185.npy
