@@ -5,7 +5,16 @@ import config
 
 def main():
     new_experiment_config_jsons = [
-        os.path.join('experiment_configs', 'efficiency_and_battery', 'eff_215_batt_26.8.json'),
+        os.path.join('experiment_configs', 'efficiency_and_battery', 'eff_200_batt_26.8.json'),
+        os.path.join('experiment_configs', 'efficiency_and_battery', 'eff_185_batt_26.8.json'),
+        os.path.join('experiment_configs', 'efficiency_and_battery', 'eff_170_batt_26.8.json'),
+        os.path.join('experiment_configs', 'efficiency_and_battery', 'eff_155_batt_26.8.json'),
+        os.path.join('experiment_configs', 'efficiency_and_battery', 'eff_140_batt_26.8.json'),
+        os.path.join('experiment_configs', 'efficiency_and_battery', 'eff_185_batt_23.06.json'),
+        os.path.join('experiment_configs', 'efficiency_and_battery', 'eff_185_batt_24.79.json'),
+        os.path.join('experiment_configs', 'efficiency_and_battery', 'eff_185_batt_29.16.json'),
+        os.path.join('experiment_configs', 'efficiency_and_battery', 'eff_185_batt_31.99.json'),
+        os.path.join('experiment_configs', 'efficiency_and_battery', 'eff_185_batt_35.41.json'),
         # os.path.join('experiment_configs', 'chevrolet_bolt_sherlock.json'),
         # os.path.join('experiment_configs', 'ioniq_electric_hybrid_pcarb0_price31_sherlock.json'),
         # os.path.join('experiment_configs', 'ioniq_electric_hybrid_pcarb0_price0_sherlock.json'),

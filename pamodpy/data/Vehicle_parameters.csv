@@ -16,7 +16,10 @@ eff_140_batt_26.8,Dacia,Spring,2023,Essential,electric,970,Af,Cd,0.01,26.8,6.6,3
 eff_155_batt_26.8,Dacia,Spring,2023,Essential,electric,970,Af,Cd,0.01,26.8,6.6,30,4.008846402,NA,21872,energies_eff_155.npy
 eff_170_batt_26.8,Dacia,Spring,2023,Essential,electric,970,Af,Cd,0.01,26.8,6.6,30,3.65512466,NA,21872,energies_eff_170.npy
 eff_185_batt_26.8,Dacia,Spring,2023,Essential,electric,970,Af,Cd,0.01,26.8,6.6,30,3.358763201,NA,21872,energies_eff_185.npy
+eff_200_batt_26.8,Dacia,Spring,2023,Essential,electric,970,Af,Cd,0.01,26.8,6.6,30,3.106855961,NA,21872,energies_eff_200.npy
 eff_215_batt_26.8,Dacia,Spring,2023,Essential,electric,970,Af,Cd,0.01,26.8,6.6,30,2.890098569,NA,21872,energies_eff_215.npy
+eff_185_batt_23.06,Dacia,Spring,2023,Essential,electric,970,Af,Cd,0.01,23.06,6.6,30,3.358763201,NA,21872,energies_eff_185.npy
+eff_185_batt_24.79,Dacia,Spring,2023,Essential,electric,970,Af,Cd,0.01,24.79,6.6,30,3.358763201,NA,21872,energies_eff_185.npy
 eff_185_batt_29.16,Dacia,Spring,2023,Essential,electric,970,Af,Cd,0.01,29.16,6.6,30,3.358763201,NA,21872,energies_eff_185.npy
 eff_185_batt_31.99,Dacia,Spring,2023,Essential,electric,970,Af,Cd,0.01,31.99,6.6,30,3.358763201,NA,21872,energies_eff_185.npy
 eff_185_batt_35.41,Dacia,Spring,2023,Essential,electric,970,Af,Cd,0.01,35.41,6.6,30,3.358763201,NA,21872,energies_eff_185.npy
