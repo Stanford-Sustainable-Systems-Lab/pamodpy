@@ -24,17 +24,17 @@ def generate_p_elec(rate_name, time_init, dt, num_days, start_hour):
     if rate_name == "Bev 2 S":
 
         energy_rates = {
-            "peak": 0.15053,
-            "part_peak": 0.15053,
-            "off_peak": 0.14456
+            "peak": 0.39949,
+            "off-peak": 0.18626,
+            "super off-peak": 0.16299 
         }
 
         demand_rate = np.round(95.56 / 50, decimals=5)
 
         hours = {
             "peak": [(16, 21)],
-            "part_peak": [(21, 24), (0, 9), (14, 16)],
-            "off_peak": [(9, 24)]
+            "off-peak": [(21, 24), (0, 9), (14, 16)],
+            "super off-peak": [(9, 24)]
         }
         cal = USFederalHolidayCalendar()
         holidays = cal.holidays(start=day_init, end=day_final).to_pydatetime()
