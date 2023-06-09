@@ -8,8 +8,8 @@
   "use_baseline_charge_stations": false,
   "drop_trips": false,
   "deltaT": 0.25,
-  "num_hours": 3,
-  "start_hour": 12,
+  "num_hours": 24,
+  "start_hour": 0,
   "deltaC": 0.5,
   "batt_cap_range": 0.7,
   "charge_throttle": false,
@@ -19,7 +19,7 @@
     "DC 50kW"
   ],
   "Vehicles": [
-    "2023 Dacia Spring Essential"
+    "eff_185_batt_23.06"
   ],
   "fleet_sizes": [
     154775

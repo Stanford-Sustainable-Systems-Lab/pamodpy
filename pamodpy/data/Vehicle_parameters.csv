@@ -3,17 +3,24 @@ name,make,model,year,trim,powertrain,m,Af,Cd,Cr,batt_cap,max_charge_rate_AC,max_
 2020 Tesla Model 3 Long Range AWD,Tesla,Model 3,2020,Long Range AWD,electric,1829,Af,Cd,0.01,75,max_charge_rate_AC,250,3.59050445,NA,46990,energies_2020_Tesla_Model_3_Long_Range_AWD.npy
 2022 Dacia Spring Comfort,Dacia,Spring,2022,Comfort,electric,970,Af,Cd,0.01,26.8,6.6,30,4.470296347,NA,24751.77305,energies_2022_Dacia_Spring_Comfort.npy
 2022 Nissan Leaf S,Nissan,Leaf,2022,S,electric,1594.8308,Af,Cd,0.01,40,6.6,50,3.633749662,NA,27400,energies_2022_Nissan_Leaf_S.npy
-2021 Hyundai IONIQ Electric SE,Hyundai,IONIQ Electric,2021,SE,electric,1529.06,Af,0.25,0.01,38.3,7.2,50,4.502689799,NA,33245,energies_2022_Hyundai_IONIQ_Electric_SE.npy
-2021 Hyundai IONIQ Hybrid SE,Hyundai,IONIQ Hybrid,2021,SE,hybrid,1374.8385,Af,0.25,0.01,NA,NA,NA,NA,62.8,25350,energies_2022_Hyundai_IONIQ_Hybrid_SE.npy
 2022 Wuling Hongguang Mini EV Yue Xiang,Wuling,Hongguang Mini EV,2022,Yue Xiang,electric,705,Af,Cd,0.01,13.8,2.2,0,6.49650078,NA,15366,energies_2022_Wuling_Hongguang_Mini_EV_YX.npy
 2022 Nissan Sakura X,Nissan,Sakura,2022,X,electric,1070,Af,Cd,0.01,20,2.9,30,5.011058,NA,21832,energies_2022_Nissan_Sakura_X.npy
 2022 Nissan Sakura Lite,Nissan,Sakura,2022,Lite,electric,1070,Af,Cd,0.01,15,2.9,30,5.011058,NA,21832,energies_2022_Nissan_Sakura_X.npy
-2023 Chevrolet Bolt EV 1LT,Chevrolet,Bolt EV,2023,1LT,electric,1628,Af,Cd,0.01,65,11.5,55,4.321354201,NA,26595,energies_2023_Chevrolet_Bolt_EV_1LT.npy
+2021 Hyundai IONIQ Electric SE,Hyundai,IONIQ Electric,2021,SE,electric,1529.06,Af,0.25,0.01,38.3,7.2,50,4.502689799,NA,33245,energies_2021_Hyundai_IONIQ_Electric_SE.npy
+2021 Hyundai IONIQ Hybrid SE,Hyundai,IONIQ Hybrid,2021,SE,hybrid,1374.8385,Af,0.25,0.01,NA,NA,NA,NA,62.8,25350,energies_2021_Hyundai_IONIQ_Hybrid_SE.npy
 2023 Dacia Spring Essential,Dacia,Spring,2023,Essential,electric,970,Af,Cd,0.01,26.8,6.6,30,4.470296347,NA,21872,energies_2023_Dacia_Spring_Essential.npy
+2023 Chevrolet Bolt EV 1LT,Chevrolet,Bolt EV,2023,1LT,electric,1628,Af,Cd,0.01,65,11.5,55,3.932729065,NA,26500,energies_2023_Chevrolet_Bolt_EV_1LT.npy
+2023 Tesla Model 3 Long Range AWD,Tesla,Model 3,2023,Long Range AWD,electric,1900,Af,Cd,0.01,82,11.5,250,4.198454002,NA,47240,energies_2023_Tesla_Model_3_Long_Range_AWD.npy
+2023 Jaguar I-PACE S,Jaguar,I-PACE,2023,S,electric,2670,Af,Cd,0.01,90,11,104,2.82441451,NA,71300,energies_2023_Jaguar_I-PACE_S.npy
 eff_140_batt_26.8,Dacia,Spring,2023,Essential,electric,970,Af,Cd,0.01,26.8,6.6,30,4.438365659,NA,21872,energies_eff_140.npy
 eff_155_batt_26.8,Dacia,Spring,2023,Essential,electric,970,Af,Cd,0.01,26.8,6.6,30,4.008846402,NA,21872,energies_eff_155.npy
 eff_170_batt_26.8,Dacia,Spring,2023,Essential,electric,970,Af,Cd,0.01,26.8,6.6,30,3.65512466,NA,21872,energies_eff_170.npy
 eff_185_batt_26.8,Dacia,Spring,2023,Essential,electric,970,Af,Cd,0.01,26.8,6.6,30,3.358763201,NA,21872,energies_eff_185.npy
+eff_200_batt_26.8,Dacia,Spring,2023,Essential,electric,970,Af,Cd,0.01,26.8,6.6,30,3.106855961,NA,21872,energies_eff_200.npy
+eff_215_batt_26.8,Dacia,Spring,2023,Essential,electric,970,Af,Cd,0.01,26.8,6.6,30,2.890098569,NA,21872,energies_eff_215.npy
+eff_185_batt_23.06,Dacia,Spring,2023,Essential,electric,970,Af,Cd,0.01,23.06,6.6,30,3.358763201,NA,21872,energies_eff_185.npy
+eff_185_batt_24.79,Dacia,Spring,2023,Essential,electric,970,Af,Cd,0.01,24.79,6.6,30,3.358763201,NA,21872,energies_eff_185.npy
 eff_185_batt_29.16,Dacia,Spring,2023,Essential,electric,970,Af,Cd,0.01,29.16,6.6,30,3.358763201,NA,21872,energies_eff_185.npy
 eff_185_batt_31.99,Dacia,Spring,2023,Essential,electric,970,Af,Cd,0.01,31.99,6.6,30,3.358763201,NA,21872,energies_eff_185.npy
 eff_185_batt_35.41,Dacia,Spring,2023,Essential,electric,970,Af,Cd,0.01,35.41,6.6,30,3.358763201,NA,21872,energies_eff_185.npy
+ioniq_elec_price_25350,Hyundai,IONIQ Electric,2021,SE,electric,1529.06,Af,0.25,0.01,38.3,7.2,50,4.502689799,NA,25350,energies_2021_Hyundai_IONIQ_Electric_SE.npy

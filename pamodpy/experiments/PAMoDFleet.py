@@ -159,7 +159,7 @@ class PAMoDFleet(metaclass=MetaPAMoDFleet):
         def add_road_edges(self, O, D, t, uMax_road, Car):
             O_idx = self.Fleet.locations.index(O)
             D_idx = self.Fleet.locations.index(D)
-            if np.all(self.Fleet.od_matrix[O_idx, D_idx] == 0):  # TODO: use location index
+            if np.all(self.Fleet.od_matrix[O_idx, D_idx] == 0):
                 return False
 
             dur = self.Fleet.time_matrix[O_idx, D_idx, int(np.floor((t * self.Fleet.deltaT) % (24 / self.Fleet.deltaT)))] / (60 * 60)
@@ -172,7 +172,7 @@ class PAMoDFleet(metaclass=MetaPAMoDFleet):
             south = last_area_zone + 3
 
             if O <= last_area_zone and D <= last_area_zone:
-                energy += self.energy_OD[O_idx, D_idx, int(np.floor((t * self.Fleet.deltaT) % (24 / self.Fleet.deltaT)))] + Car.compute_power * dur  # TODO: fix this relic (first two rows empty, arbitrarily)
+                energy += self.energy_OD[O_idx, D_idx, int(np.floor((t * self.Fleet.deltaT) % (24 / self.Fleet.deltaT)))] + Car.compute_power * dur
 
             if self.Fleet.region in ["SF_190", "SF_25", "SF_5"]:
                 if O == golden_gate or D == golden_gate:
@@ -477,7 +477,7 @@ class PAMoDFleet(metaclass=MetaPAMoDFleet):
         np.save(os.path.join(self.results_path, 'U_rebal_list.npy'), self.U_rebal_list)
         if self.optimize_infra:
             np.save(os.path.join(self.results_path, 'UMax_charge.npy'), self.UMax_charge)
-        np.save(os.path.join(self.results_path, 'cost_list.npy'),self.costs_list)
+        np.save(os.path.join(self.results_path, 'cost_list.npy'), self.costs_list)
         self.logger = None
         pickle.dump(self, open(os.path.join(self.results_path, '{}.p'.format(self.name)), 'wb'))
 
