@@ -1,0 +1,34 @@
+{
+  "experiment_type": "PAMoDFleet",
+  "algorithm": "PAMoD_optimization_gurobi",
+  "region": "SF_25",
+  "results_path": "$SCRATCH/pamodpy_results",
+  "optimize_fleet_size": true,
+  "optimize_infra": true,
+  "use_baseline_charge_stations": false,
+  "drop_trips": false,
+  "deltaT": 0.25,
+  "num_hours": 24,
+  "start_hour": 0,
+  "deltaC": 0.5,
+  "batt_cap_range": 0.7,
+  "charge_throttle": false,
+  "EVSEs": [
+    "AC 7.7kW",
+    "DC 22.5kW",
+    "DC 50kW"
+  ],
+  "Vehicles": [
+    "ioniq_elec_price_25350",
+    "2021 Hyundai IONIQ Hybrid SE"
+  ],
+  "fleet_sizes": [
+    154775,
+    154775
+  ],
+  "p_travel": 0.0794,
+  "p_ownership_excl_deprec": 2263,
+  "p_travel_ICE": 0.0878,
+  "p_gas": 4.12725,
+  "p_carbon": 51
+}
