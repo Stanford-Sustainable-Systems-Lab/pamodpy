@@ -26,7 +26,7 @@ def generate_p_elec(rate_name, time_init, dt, num_days, start_hour):
         energy_rates = {
             "peak": 0.39949,
             "off-peak": 0.18626,
-            "super off-peak": 0.16299 
+            "super off-peak": 0.16299
         }
 
         demand_rate = np.round(95.56 / 50, decimals=5)
