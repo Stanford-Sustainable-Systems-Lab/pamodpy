@@ -57,9 +57,7 @@ class Experiment(ABC):
         self.charge_throttle = False
         self.Vehicles = [Vehicle(vehicle_name) for vehicle_name in config['Vehicles']]
         for compute_power, vehicle in zip(config['compute_power'], self.Vehicles):
-            print("Before: {} {}kW".format(vehicle.name, vehicle.compute_power))
             vehicle.compute_power = compute_power
-            print("After: {} {}kW".format(vehicle.name, vehicle.compute_power))
         self.energy_ODs = None  # List of numpy array of OD matrix with trip energies in [kWh] for each vehicle in self.Vehicles
         self.fleet_sizes = config['fleet_sizes']  # max(np.sum(self.od_matrix, axis=(0, 1)))         # List of number of vehicles of each Vehicle model in fleet, corresponding to self.Vehicles for each vehicle in self.Vehicles
 
