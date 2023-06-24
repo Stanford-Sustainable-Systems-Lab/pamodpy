@@ -32,6 +32,7 @@ import numpy as np
 
 from ..Vehicle import Vehicle
 from ..utils.constants import *
+from ..utils.generate_p_elec import generate_p_elec
 from ..utils.load_data import *
 from ..EVSE import EVSE
 
@@ -88,7 +89,6 @@ class Experiment(ABC):
 
         # Costs and prices
         self.revenue_matrix = None  # (L, L, 24) Numpy array of OD matrix with trip revenue in [$]
-        self.p_elec_demand = p_demand_month
         self.p_travel = config['p_travel']  # 0.0770 [$ / mi] 0.30 * 1.60934 https://newsroom.aaa.com/wp-content/uploads/2021/08/2021-YDC-Brochure-Live.pdf # travel cost (maintenance)
         self.p_ownership_excl_deprec = config['p_ownership_excl_deprec']  # 1381 + 155  # [$ / yr] https://newsroom.aaa.com/wp-content/uploads/2021/08/2021-YDC-Brochure-Live.pdf # insurance, fees. Finance charges ($692) also excluded
         self.p_travel_ICE = config['p_travel_ICE']  #0.0878 # [$ / mi] https://newsroom.aaa.com/wp-content/uploads/2021/08/2021-YDC-Brochure-Live.pdf # travel cost (maintenance)
@@ -96,7 +96,8 @@ class Experiment(ABC):
         self.p_carbon = config['p_carbon']  #0 # [$ / ton CO2]
 
         # Generated variables
-        self.p_elec = generate_p_elec(int(np.round(24 / self.deltaT)))
+        self.p_elec_energy, self.p_elec_demand = generate_p_elec(config['p_elec'], 1678863600, self.deltaT, int(np.ceil(config['num_hours'] / 24)), config['start_hour'])
+        self.carbon_intensity_grid = generate_carbon_intensity_grid(int(np.round(24 / self.deltaT)))
         self.logger = None
 
     @abstractmethod

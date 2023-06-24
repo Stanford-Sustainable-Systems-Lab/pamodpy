@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 from dateutil import tz
+from itertools import repeat
 
 import numpy as np
 from pandas.tseries.holiday import USFederalHolidayCalendar
@@ -14,39 +15,141 @@ def generate_p_elec(rate_name, time_init, dt, num_days, start_hour):
     total_days = (day_final - day_init).days + 1
 
     p_elec_energy_total = np.zeros(int(np.round(total_days * 24 / dt)))
-    p_elec_demand_dict = {
-        "peak": np.zeros(int(np.round(total_days * 24 / dt))),
-        "part_peak": np.zeros(int(np.round(total_days * 24 / dt))),
-        "any_time": np.zeros(int(np.round(total_days * 24 / dt)))
-    }
+    p_elec_demand_dict = {}
 
-    #Bev-2-S
-    if rate_name == "Bev 2 S":
+    #BEV-2-S
+    if rate_name == "BEV-2-S":
 
         energy_rates = {
             "peak": 0.39949,
             "off-peak": 0.18626,
-            "super off-peak": 0.16299
+            "super_off-peak": 0.16299
         }
 
-        demand_rate = np.round(95.56 / 50, decimals=5)
+        demand_rates = {
+            "any_time": np.round(95.56 / 50, decimals=5)
+        }
 
         hours = {
             "peak": [(16, 21)],
             "off-peak": [(21, 24), (0, 9), (14, 16)],
-            "super off-peak": [(9, 24)]
+            "super_off-peak": [(9, 14)],
+            "any_time": [(0, 24)]
         }
-        cal = USFederalHolidayCalendar()
-        holidays = cal.holidays(start=day_init, end=day_final).to_pydatetime()
+
+        p_elec_demand_dict = dict(zip(demand_rates.keys(), repeat(np.zeros(int(np.round(total_days * 24 / dt))))))
+
         current_day = day_init
         for day in range(total_days):
             p_elec_energy_day = np.zeros(int(np.round(24 / dt)))
-            for (interval_name, intervals) in hours.items():
-                for interval in intervals:
-                    p_elec_energy_day[int(np.round(interval[0] / dt)): int(np.round(interval[1] / dt))] = \
-                        energy_rates[interval_name]
-                p_elec_energy_total[int(np.round(day * 24 / dt)):int(np.round((day + 1) * 24 / dt))] = p_elec_energy_day
-                p_elec_demand_day_interval = np.full(int(np.round(24 / dt)), demand_rate)
+            for (interval_name, energy_rate) in energy_rates.items():
+                if interval_name in hours.keys():
+                    intervals = hours[interval_name]
+                    for interval in intervals:
+                        p_elec_energy_day[int(np.round(interval[0] / dt)): int(np.round(interval[1] / dt))] = \
+                            energy_rates[interval_name]
+            p_elec_energy_total[int(np.round(day * 24 / dt)):int(np.round((day + 1) * 24 / dt))] = p_elec_energy_day
+
+            for (interval_name, demand_rate) in demand_rates.items():
+                p_elec_demand_day_interval = np.zeros(int(np.round(24 / dt)))
+                if interval_name in hours.keys():
+                    intervals = hours[interval_name]
+                    for interval in intervals:
+                        p_elec_demand_day_interval[int(np.round(interval[0] / dt)): int(np.round(interval[1] / dt))] = \
+                            demand_rate
+                p_elec_demand_dict[interval_name][int(np.round(day * 24 / dt)):int(np.round((day + 1) * 24 / dt))] = \
+                    p_elec_demand_day_interval
+
+            current_day += timedelta(days=1)
+
+    elif rate_name == "E19 Secondary Voltage":
+        summer_months = (5, 6, 7, 8, 9, 10)     # May 1 to Oct 31
+        winter_months = (11, 12, 1, 2, 3, 4)    # Nov 1 to Apr 30
+
+        energy_rates = {
+            "summer": {
+                "peak": 0.15076,
+                "part_peak": 0.15076,
+                "off_peak": 0.14479
+            },
+            "winter": {
+                "part_peak": 0.14220,
+                "off_peak": 0.14149
+            }
+        }
+
+        demand_rates = {
+            "summer": {
+                "peak": 18.83,
+                "part_peak": 15.93,
+                "any_time": 30.34
+            },
+            "winter": {
+                "part_peak": 0,
+                "any_time": 30.34
+            }
+        }
+
+        hours = {
+            "summer": {
+                "workday": {
+                    "peak": [(12, 18)],
+                    "part_peak": [(8.5, 12), (18, 21.5)],
+                    "off_peak": [(21.5, 24), (0, 8.5)],
+                    "any_time": [(0, 24)]
+                },
+                "non-workday": {
+                    "off_peak": [(0, 24)],
+                    "any_time": [(0, 24)]
+                }
+            },
+            "winter": {
+                "workday": {
+                    "part_peak": [(8.5, 21.5)],
+                    "off_peak": [(21.5, 24), (0, 8.5)],
+                    "any_time": [(0, 24)]
+                },
+                "non-workday": {
+                    "off_peak": [(0, 24)],
+                    "any_time": [(0, 24)]
+                }
+            },
+        }
+
+        cal = USFederalHolidayCalendar()
+        holidays = cal.holidays(start=day_init, end=day_final).to_pydatetime()
+        holidays = [holiday.date() for holiday in holidays]
+        current_day = day_init
+        for day in range(total_days):
+            if current_day.month in summer_months:
+                period = "summer"
+            else:
+                period = "winter"
+            if current_day.weekday() in (0, 1, 2, 3, 4) and current_day not in holidays:
+                day_type = "workday"
+            else:
+                day_type = "non-workday"
+
+            for interval_name in demand_rates[period].keys():
+                if interval_name not in p_elec_demand_dict.keys():
+                    p_elec_demand_dict[interval_name] = np.zeros(int(np.round(total_days * 24 / dt)))
+            p_elec_energy_day = np.zeros(int(np.round(24 / dt)))
+
+            for (interval_name, energy_rate) in energy_rates[period].items():
+                if interval_name in hours[period][day_type].keys():
+                    intervals = hours[period][day_type][interval_name]
+                    for interval in intervals:
+                        p_elec_energy_day[int(np.round(interval[0] / dt)): int(np.round(interval[1] / dt))] = \
+                            energy_rates[period][interval_name]
+            p_elec_energy_total[int(np.round(day * 24 / dt)):int(np.round((day + 1) * 24 / dt))] = p_elec_energy_day
+
+            for (interval_name, demand_rate) in demand_rates[period].items():
+                p_elec_demand_day_interval = np.zeros(int(np.round(24 / dt)))
+                if interval_name in hours[period][day_type].keys():
+                    intervals = hours[period][day_type][interval_name]
+                    for interval in intervals:
+                        p_elec_demand_day_interval[int(np.round(interval[0] / dt)): int(np.round(interval[1] / dt))] = \
+                            demand_rate
                 p_elec_demand_dict[interval_name][int(np.round(day * 24 / dt)):int(np.round((day + 1) * 24 / dt))] = \
                     p_elec_demand_day_interval
 
@@ -59,13 +162,10 @@ def generate_p_elec(rate_name, time_init, dt, num_days, start_hour):
 
         energy_rates = {
             "summer": {
-                "peak": 0.79,
-                "part_peak": 0.79,
-                "off_peak": 0.79
+                "any_time": 0.0079
             },
             "winter": {
-                "part_peak": 0.79,
-                "off_peak": 0.79
+                "any_time": 0.0079
             }
         }
 
@@ -86,54 +186,54 @@ def generate_p_elec(rate_name, time_init, dt, num_days, start_hour):
                 "workday": {
                     "peak": [(8, 22)],
                     "part_peak": [(8, 18)],
-                    "off_peak": [(0, 24)]
+                    "any_time": [(0, 24)]
                 },
                 "non-workday": {
-                    "off_peak": [(0, 24)]
+                    "any_time": [(0, 24)]
                 }
             },
             "winter": {
                 "workday": {
                     "part_peak": [(8, 22)],
-                    "off_peak": [(0, 24)]
+                    "any_time": [(0, 24)]
                 },
                 "non-workday": {
-                    "off_peak": [(0, 24)]
+                    "any_time": [(0, 24)]
                 }
             },
         }
 
-        cal = USFederalHolidayCalendar()
-        holidays = cal.holidays(start=day_init, end=day_final).to_pydatetime()
         current_day = day_init
         for day in range(total_days):
             if current_day.month in summer_months:
                 period = "summer"
             else:
                 period = "winter"
-            if current_day.weekday() in (0, 1, 2, 3, 4) and current_day not in holidays:
+            if current_day.weekday() in (0, 1, 2, 3, 4):
                 day_type = "workday"
             else:
                 day_type = "non-workday"
 
+            for interval_name in demand_rates[period].keys():
+                if interval_name not in p_elec_demand_dict.keys():
+                    p_elec_demand_dict[interval_name] = np.zeros(int(np.round(total_days * 24 / dt)))
             p_elec_energy_day = np.zeros(int(np.round(24 / dt)))
-            for (interval_name, intervals) in hours[period][day_type].items():
-                for interval in intervals:
-                    p_elec_energy_day[int(np.round(interval[0] / dt)): int(np.round(interval[1] / dt))] = \
-                        energy_rates[period][interval_name]
+
+            for (interval_name, energy_rate) in energy_rates[period].items():
+                if interval_name in hours[period][day_type].keys():
+                    intervals = hours[period][day_type][interval_name]
+                    for interval in intervals:
+                        p_elec_energy_day[int(np.round(interval[0] / dt)): int(np.round(interval[1] / dt))] = \
+                            energy_rates[period][interval_name]
             p_elec_energy_total[int(np.round(day * 24 / dt)):int(np.round((day + 1) * 24 / dt))] = p_elec_energy_day
 
             for (interval_name, demand_rate) in demand_rates[period].items():
-                if interval_name == "any_time":
-                    p_elec_demand_day_interval = np.ones(int(np.round(24 / dt))) * demand_rate
-                elif interval_name in hours[period][day_type].keys():
-                    p_elec_demand_day_interval = np.zeros(int(np.round(24 / dt)))
+                p_elec_demand_day_interval = np.zeros(int(np.round(24 / dt)))
+                if interval_name in hours[period][day_type].keys():
                     intervals = hours[period][day_type][interval_name]
                     for interval in intervals:
                         p_elec_demand_day_interval[int(np.round(interval[0] / dt)): int(np.round(interval[1] / dt))] = \
                             demand_rate
-                else:
-                    p_elec_demand_day_interval = np.zeros(int(np.round(24 / dt)))
                 p_elec_demand_dict[interval_name][int(np.round(day * 24 / dt)):int(np.round((day + 1) * 24 / dt))] = \
                     p_elec_demand_day_interval
 
@@ -146,15 +246,12 @@ def generate_p_elec(rate_name, time_init, dt, num_days, start_hour):
 
         energy_rates = {
             "summer": {
-                "peak": 0.79,
-                "part_peak": 0.79,
-                "off_peak": 0.79,
-                "off_peak_inc": -0.1
+                "any_time_excl_incentive": 0.0079,
+                "smart_charge_incentive": 0.0079-0.1
             },
             "winter": {
-                "part_peak": 0.79,
-                "off_peak": 0.79,
-                "off_peak_inc": -0.1
+                "any_time_excl_incentive": 0.0079,
+                "smart_charge_incentive": 0.0079-0.1
             }
         }
 
@@ -175,89 +272,64 @@ def generate_p_elec(rate_name, time_init, dt, num_days, start_hour):
                 "workday": {
                     "peak": [(8, 22)],
                     "part_peak": [(8, 18)],
-                    "off_peak": [(0, 24)],
-                    "off_peak_inc": [(0, 8)]
+                    "any_time": [(0, 24)],
+                    "any_time_excl_incentive": [(8, 24)],
+                    "smart_charge_incentive": [(0, 8)]
                 },
                 "non-workday": {
-                    "off_peak": [(0, 24)],
-                    "off_peak_inc": [(0, 8)]
+                    "any_time": [(0, 24)],
+                    "any_time_excl_incentive": [(8, 24)],
+                    "smart_charge_incentive": [(0, 8)]
                 }
             },
             "winter": {
                 "workday": {
                     "part_peak": [(8, 22)],
-                    "off_peak": [(0, 24)],
-                    "off_peak_inc": [(0, 8)]
+                    "any_time": [(0, 24)],
+                    "any_time_excl_incentive": [(8, 24)],
+                    "smart_charge_incentive": [(0, 8)]
                 },
                 "non-workday": {
-                    "off_peak": [(0, 24)],
-                    "off_peak_inc": [(0, 8)]
+                    "any_time": [(0, 24)],
+                    "any_time_excl_incentive": [(8, 24)],
+                    "smart_charge_incentive": [(0, 8)]
                 }
             },
         }
 
-        cal = USFederalHolidayCalendar()
-        holidays = cal.holidays(start=day_init, end=day_final).to_pydatetime()
         current_day = day_init
         for day in range(total_days):
             if current_day.month in summer_months:
                 period = "summer"
             else:
                 period = "winter"
-            if current_day.weekday() in (0, 1, 2, 3, 4) and current_day not in holidays:
+            if current_day.weekday() in (0, 1, 2, 3, 4) and current_day:
                 day_type = "workday"
             else:
                 day_type = "non-workday"
 
+            for interval_name in demand_rates[period].keys():
+                if interval_name not in p_elec_demand_dict.keys():
+                    p_elec_demand_dict[interval_name] = np.zeros(int(np.round(total_days * 24 / dt)))
             p_elec_energy_day = np.zeros(int(np.round(24 / dt)))
-            for (interval_name, intervals) in hours[period][day_type].items():
-                for interval in intervals:
-                    p_elec_energy_day[int(np.round(interval[0] / dt)): int(np.round(interval[1] / dt))] = \
-                        energy_rates[period][interval_name]
+
+            for (interval_name, energy_rate) in energy_rates[period].items():
+                if interval_name in hours[period][day_type].keys():
+                    intervals = hours[period][day_type][interval_name]
+                    for interval in intervals:
+                        p_elec_energy_day[int(np.round(interval[0] / dt)): int(np.round(interval[1] / dt))] = \
+                            energy_rates[period][interval_name]
             p_elec_energy_total[int(np.round(day * 24 / dt)):int(np.round((day + 1) * 24 / dt))] = p_elec_energy_day
 
             for (interval_name, demand_rate) in demand_rates[period].items():
-                if interval_name == "any_time":
-                    p_elec_demand_day_interval = np.ones(int(np.round(24 / dt))) * demand_rate
-                elif interval_name in hours[period][day_type].keys():
-                    p_elec_demand_day_interval = np.zeros(int(np.round(24 / dt)))
+                p_elec_demand_day_interval = np.zeros(int(np.round(24 / dt)))
+                if interval_name in hours[period][day_type].keys():
                     intervals = hours[period][day_type][interval_name]
                     for interval in intervals:
                         p_elec_demand_day_interval[int(np.round(interval[0] / dt)): int(np.round(interval[1] / dt))] = \
                             demand_rate
-                else:
-                    p_elec_demand_day_interval = np.zeros(int(np.round(24 / dt)))
                 p_elec_demand_dict[interval_name][int(np.round(day * 24 / dt)):int(np.round((day + 1) * 24 / dt))] = \
                     p_elec_demand_day_interval
-
-            current_day += timedelta(days=1)
-
-    # NYC SmartCharge Incentives
-    elif rate_name == "SmartCharge Incentives":
-
-        energy_rate = {
-            "off-peak": 0.1,
-            "peak": 0
-        }
-
-        hours = {
-            "off-peak": [(0, 8)],
-            "peak": [(9, 24)]
-        }
-
-        cal = USFederalHolidayCalendar()
-        holidays = cal.holidays(start=day_init, end=day_final).to_pydatetime()
-        current_day = day_init
-        for day in range(total_days):
-
-            p_elec_energy_day = np.zeros(int(np.round(24 / dt)))
-            for (interval_name, intervals) in hours.items():
-                for interval in intervals:
-                    p_elec_energy_day[int(np.round(interval[0] / dt)): int(np.round(interval[1] / dt))] = energy_rate[interval_name]
-                p_elec_energy_total[int(np.round(day * 24 / dt)):int(np.round((day + 1) * 24 / dt))] = p_elec_energy_day
-
-                p_elec_demand_day_interval = np.zeros(int(np.round(24 / dt)))
-                p_elec_demand_dict[interval_name][int(np.round(day * 24 / dt)):int(np.round((day + 1) * 24 / dt))] = p_elec_demand_day_interval
 
             current_day += timedelta(days=1)
 

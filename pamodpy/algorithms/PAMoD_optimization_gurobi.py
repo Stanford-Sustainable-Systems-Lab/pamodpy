@@ -63,18 +63,18 @@ def PAMoD_optimization_gurobi(experiment):
                             repeat(U_list), repeat(trip_flow), repeat(build), o_d_t_gen, idx_gen, repeat(experiment), count())
         return outputs
 
-    def obj_elec_demand(U_list, PMax, build=True):
+    def obj_elec_demand(U_list, PMax, p_elec_demand_interval_idx, p_elec_demand_interval_rate, p_elec_demand_interval_nonzeros, build=True):
         elec_demand = 0
         for l_idx, l in enumerate(experiment.charge_stations.keys()):
-            elec_demand += PMax[l_idx] * experiment.p_elec_demand * (
+            elec_demand += PMax[l_idx, p_elec_demand_interval_idx] * p_elec_demand_interval_rate * (
                         experiment.T * experiment.deltaT / HOURS_PER_MONTH) * (PMax_const / U_const)
 
         if build:
             lidx_l_t = ((l_idx, l, t) for l_idx, l in enumerate(experiment.charge_stations.keys())
-                        for t in range(experiment.startT, experiment.endT))
+                        for t in p_elec_demand_interval_nonzeros)
             with pmp.ThreadingPool() as p:
                 outputs = p.map(obj_elec_demand_worker,
-                                repeat(U_list), repeat(PMax), lidx_l_t, repeat(experiment), count())
+                                repeat(U_list), repeat(PMax), repeat(p_elec_demand_interval_idx), lidx_l_t, repeat(experiment), count())
             return elec_demand, outputs
         else:
             return elec_demand
@@ -134,7 +134,19 @@ def PAMoD_optimization_gurobi(experiment):
                     B = m.addMVar(shape=(len(experiment.locations_excl_passthrough), len(experiment.EVSEs)), vtype='B', name="B")
             else:
                 UMax_charge = experiment.UMax_charge
-            PMax = m.addMVar(shape=(len(experiment.locations_excl_passthrough), 1), lb=0.0, name="PMax")
+
+            p_elec_demand_interval_names = []
+            p_elec_demand_interval_nonzeros_list = []
+            p_elec_demand_interval_rates = []
+            for (interval_name, rate_arr) in experiment.p_elec_demand.items():
+                nonzero_idxs = np.flatnonzero(rate_arr)
+                if nonzero_idxs.size != 0:
+                    p_elec_demand_interval_names.append(interval_name)
+                    p_elec_demand_interval_nonzeros_list.append(nonzero_idxs)
+                    p_elec_demand_interval_rates.append(np.mean(rate_arr[nonzero_idxs]))
+            print(p_elec_demand_interval_names, p_elec_demand_interval_nonzeros_list, p_elec_demand_interval_rates)
+            PMax = m.addMVar(shape=(len(experiment.locations_excl_passthrough), len(p_elec_demand_interval_names)), lb=0.0, name="PMax")
+
             if experiment.drop_trips:
                 trip_flow = m.addMVar(shape=len(experiment.road_arcs) * experiment.T, name="trip_flow")
             else:
@@ -249,11 +261,14 @@ def PAMoD_optimization_gurobi(experiment):
             experiment.logger.info("--Created fleet dynamics (elapsed={:.2f})".format(time.time() - tic))
 
             tic = time.time()
-            [elec_demand, outputs] = obj_elec_demand(U_list, PMax)
-            for output in sorted(outputs, key=lambda item: item[-1]):
-                if output[0] is not None:
-                    m.addConstr(output[0])
-            del outputs
+            elec_demand = 0
+            for p_elec_demand_interval_idx, (p_elec_demand_interval_rate, p_elec_demand_interval_nonzeros) in enumerate(zip(p_elec_demand_interval_rates, p_elec_demand_interval_nonzeros_list)):
+                [elec_demand_interval, outputs] = obj_elec_demand(U_list, PMax, p_elec_demand_interval_idx, p_elec_demand_interval_rate, p_elec_demand_interval_nonzeros)
+                elec_demand += elec_demand_interval
+                for output in sorted(outputs, key=lambda item: item[-1]):
+                    if output[0] is not None:
+                        m.addConstr(output[0])
+                del outputs
             dist = sum([U_list[vehicle_idx] @ PAMoDVehicle.Dist * experiment.p_travel for vehicle_idx, PAMoDVehicle in enumerate(experiment.PAMoDVehicles)])
             experiment.logger.info("--Created elec_demand and dist obj terms (elapsed={:.2f})".format(time.time() - tic))
 
@@ -463,7 +478,7 @@ def obj_elec_energy_carbon_and_constr_UMax_charge_worker(U_list, UMax_charge, bu
                 else:
                     elec_energy_list.append(
                         (U_list[vehicle_idx][E_charge_idx_l_eid_t] @ PAMoDVehicle.energy_conv[E_charge_idx_l_eid_t]) *
-                        experiment.p_elec[t])
+                        experiment.p_elec_energy[t])
                     elec_carbon_list.append(
                         (U_list[vehicle_idx][E_charge_idx_l_eid_t] @ PAMoDVehicle.energy_conv[
                             E_charge_idx_l_eid_t]) *
@@ -477,7 +492,7 @@ def obj_elec_energy_carbon_and_constr_UMax_charge_worker(U_list, UMax_charge, bu
                 else:
                     elec_energy_list.append(
                         (U_list[vehicle_idx][E_charge_idx_l_eid_t] @ PAMoDVehicle.energy_conv[E_charge_idx_l_eid_t]) *
-                        experiment.p_elec[t])
+                        experiment.p_elec_energy[t])
                     elec_carbon_list.append(
                         (U_list[vehicle_idx][E_charge_idx_l_eid_t] @ PAMoDVehicle.energy_conv[
                             E_charge_idx_l_eid_t]) *
@@ -567,7 +582,7 @@ def obj_revenue_and_constr_UMax_road_worker(U_list, trip_flow, build, o_d_t, idx
         return revenue_term
 
 
-def obj_elec_demand_worker(U_list, PMax, lidx_l_t, experiment, count):
+def obj_elec_demand_worker(U_list, PMax, p_elec_demand_interval_idx, lidx_l_t, experiment, count):
     l_idx, l, t = lidx_l_t
 
     obj_elec_demand_lhs = []
@@ -587,7 +602,7 @@ def obj_elec_demand_worker(U_list, PMax, lidx_l_t, experiment, count):
             invalid += 1
 
     if invalid < max(n_elec_vehicles, 1):
-        return sum(obj_elec_demand_lhs) <= PMax[l_idx] * (PMax_const / U_const), count
+        return sum(obj_elec_demand_lhs) <= PMax[l_idx, p_elec_demand_interval_idx] * (PMax_const / U_const), count
     else:
         return None, count
 

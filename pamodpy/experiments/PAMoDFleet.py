@@ -351,8 +351,6 @@ class PAMoDFleet(metaclass=MetaPAMoDFleet):
     def build(self):
         self.set_logger()
         self.logger.info('Building experiment {}...'.format(self.name))
-        self.p_elec = generate_p_elec(int(np.round(24 / self.deltaT)))
-        self.carbon_intensity_grid = generate_carbon_intensity_grid(int(np.round(24 / self.deltaT)))
         self.L = len(self.locations)
 
         for vehicle_idx in range(len(self.Vehicles)):
