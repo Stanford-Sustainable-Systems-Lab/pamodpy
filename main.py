@@ -5,7 +5,8 @@ import config
 
 def main():
     new_experiment_config_jsons = [
-        os.path.join('experiment_configs', 'dacia_spring_sherlock_1kW.json')
+        os.path.join('experiment_configs', 'dacia_spring_sherlock_E19.json'),
+        os.path.join('experiment_configs', 'dacia_spring_sherlock.json')
         # os.path.join('experiment_configs', 'efficiency_and_battery', 'eff_170_batt_26.8.json'),
         # os.path.join('experiment_configs', 'efficiency_and_battery', 'eff_155_batt_26.8.json'),
         # os.path.join('experiment_configs', 'efficiency_and_battery', 'eff_140_batt_26.8.json'),
