@@ -96,7 +96,7 @@ class Experiment(ABC):
         self.p_carbon = config['p_carbon']  #0 # [$ / ton CO2]
 
         # Generated variables
-        self.p_elec_energy, self.p_elec_demand = generate_p_elec(config['p_elec'], 1678863600, self.deltaT, int(np.ceil(config['num_hours'] / 24)), config['start_hour'])
+        self.p_elec_energy, self.p_elec_demand = generate_p_elec(config['p_elec'], 1684134000, self.deltaT, int(np.ceil(config['num_hours'] / 24)), config['start_hour'])
         self.carbon_intensity_grid = generate_carbon_intensity_grid(int(np.round(24 / self.deltaT)))
         self.logger = None
 
