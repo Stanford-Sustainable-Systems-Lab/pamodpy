@@ -21,9 +21,9 @@ def generate_p_elec(rate_name, time_init, dt, num_days, start_hour):
     if rate_name == "BEV-2-S":
 
         energy_rates = {
-            "peak": 0.39949,
-            "off-peak": 0.18626,
-            "super_off-peak": 0.16299
+            "peak": 0.39971,
+            "off-peak": 0.18648,
+            "super_off-peak": 0.16321
         }
 
         demand_rates = {
@@ -68,25 +68,25 @@ def generate_p_elec(rate_name, time_init, dt, num_days, start_hour):
 
         energy_rates = {
             "summer": {
-                "peak": 0.15076,
-                "part_peak": 0.15076,
-                "off_peak": 0.14479
+                "peak": 0.15098,
+                "part_peak": 0.15098,
+                "off_peak": 0.14501
             },
             "winter": {
-                "part_peak": 0.14220,
-                "off_peak": 0.14149
+                "part_peak": 0.14242,
+                "off_peak": 0.14171
             }
         }
 
         demand_rates = {
             "summer": {
-                "peak": 18.83,
-                "part_peak": 15.93,
-                "any_time": 30.34
+                "peak": 19.84,
+                "part_peak": 16.36,
+                "any_time": 34.09
             },
             "winter": {
                 "part_peak": 0,
-                "any_time": 30.34
+                "any_time": 34.09
             }
         }
 
@@ -156,6 +156,8 @@ def generate_p_elec(rate_name, time_init, dt, num_days, start_hour):
             current_day += timedelta(days=1)
 
     # NYC SC9 Rate III
+    # https://www.coned.com/en/our-energy-future/electric-vehicles/best-electric-delivery-rate-for-your-charging-station
+    # https://lite.coned.com/_external/cerates/documents/elecPSC10/electric-tariff.pdf
     elif rate_name == "SC9 Rate III":
         summer_months = (6, 7, 8, 9)  # Jun 1 to Sep 30
         winter_months = (10, 11, 12, 1, 2, 3, 4, 5)  # Oct 1 to May 31
@@ -240,6 +242,8 @@ def generate_p_elec(rate_name, time_init, dt, num_days, start_hour):
             current_day += timedelta(days=1)
 
     # NYC SC9 Rate III + SmartCharge Incentive
+    # https://lite.coned.com/_external/cerates/documents/elecPSC10/electric-tariff.pdf
+    # https://www.coned.com/en/save-money/rebates-incentives-tax-credits/rebates-incentives-tax-credits-for-residential-customers/electric-vehicle-rewards
     elif rate_name == "SC9 Rate III with SC Incentive":
         summer_months = (6, 7, 8, 9)  # Jun 1 to Sep 30
         winter_months = (10, 11, 12, 1, 2, 3, 4, 5)  # Oct 1 to May 31
