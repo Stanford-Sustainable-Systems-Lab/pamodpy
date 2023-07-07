@@ -438,6 +438,9 @@ def PAMoD_optimization_gurobi(experiment):
             elec_demand_final = 0
             elec_carbon_final = 0
 
+        # Garbage Collection
+        del m
+        gp.disposeDefaultEnv()
 
         return [np.array(X_list, dtype=object), np.array(U_value_list, dtype=object) * U_const, np.array(U_trip_charge_idle_list, dtype=object) * U_const, np.array(U_rebal_list, dtype=object) * U_const,
                 elec_energy_final,
