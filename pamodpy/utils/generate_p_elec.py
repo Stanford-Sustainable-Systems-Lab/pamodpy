@@ -244,7 +244,7 @@ def generate_p_elec(rate_name, time_init, dt, num_days, start_hour):
     # NYC SC9 Rate III + SmartCharge Incentive
     # https://lite.coned.com/_external/cerates/documents/elecPSC10/electric-tariff.pdf
     # https://www.coned.com/en/save-money/rebates-incentives-tax-credits/rebates-incentives-tax-credits-for-residential-customers/electric-vehicle-rewards
-    elif rate_name == "SC9 Rate III with SC Incentive":
+    elif rate_name == "SC9 Rate III with SmartCharge Incentive":
         summer_months = (6, 7, 8, 9)  # Jun 1 to Sep 30
         winter_months = (10, 11, 12, 1, 2, 3, 4, 5)  # Oct 1 to May 31
 
