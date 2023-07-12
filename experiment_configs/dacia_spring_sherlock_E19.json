@@ -30,7 +30,7 @@
   "p_travel": 0.0794,
   "p_ownership_excl_deprec": 2263,
   "p_travel_ICE": 0.0878,
-  "p_elec": "E19 Secondary Voltage",
+  "p_elec": "E-19 Secondary Voltage",
   "p_gas": 4.12725,
   "p_carbon": 0
 }

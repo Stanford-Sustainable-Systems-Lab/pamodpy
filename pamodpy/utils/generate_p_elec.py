@@ -62,7 +62,7 @@ def generate_p_elec(rate_name, time_init, dt, num_days, start_hour):
 
             current_day += timedelta(days=1)
 
-    elif rate_name == "E19 Secondary Voltage":
+    elif rate_name == "E-19 Secondary Voltage":
         summer_months = (5, 6, 7, 8, 9, 10)     # May 1 to Oct 31
         winter_months = (11, 12, 1, 2, 3, 4)    # Nov 1 to Apr 30
 
