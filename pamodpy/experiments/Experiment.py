@@ -66,11 +66,11 @@ class Experiment(ABC):
         self.data_path = None
         self.shp_file_path = None
         self.streetlight_df = None
-        self.results_path = None                      # directory where results are saved
+        self.results_path = None  # directory where results are saved
         self.time_matrix = None  # (L, L, 24) Numpy array of OD matrix with trip durations in [s]
         self.dist_matrix = None  # (L, L, 24) Numpy array of OD matrix with trip distances in [mi]
-        self.od_matrix = None        # (L, L, 24) Numpy array of OD matrix with travel volume [# vehicles]
-        self.top_idx = None                      # Numpy array of indices (not TAZ) of non-zero roads in matched_od_matrix_top
+        self.od_matrix = None  # (L, L, 24) Numpy array of OD matrix with travel volume [# vehicles]
+        self.top_idx = None  # Numpy array of indices (not TAZ) of non-zero roads in matched_od_matrix_top
         self.EVSEs = [EVSE(evse_name) for evse_name in config['EVSEs']]  # 7.7, 20, 50.0, 150.0
         self.charge_rate = np.sort(
             np.unique(np.array([evse.rate for evse in self.EVSEs])))  # list of available charging rates [kW]
@@ -78,12 +78,12 @@ class Experiment(ABC):
         # Optimization Settings
         self.save_opt = True
         self.load_opt = False
-        self.boundary = True  # constraint requiring fleet distribution and SOCs across all location at t=-1 be same as t=0
-        self.optimize_fleet_size = config['optimize_fleet_size']                                             # Whether to optimize for fleet size or constrain it
-        self.optimize_infra = config['optimize_infra']                                                 # Whether to optimize charging infrastructure placement
-        self.optimize_infra_mip = False                                             # True: integer variable for capex or step costs; False: approximate costs as linear
-        self.congestion_constr_road = False                                         # Whether to have congestion threshold limits on road paths
-        self.congestion_constr_charge = True                                       # Whether to have congestion threshold limits at charging stations
+        self.periodicity = True  # True: turn on constraint requiring fleet state at t=0 to be same at t=T
+        self.optimize_fleet_size = config['optimize_fleet_size']  # True: fleet size is a decision variable
+        self.optimize_infra = config['optimize_infra']  # True: optimize charging infrastructure placement
+        self.optimize_infra_mip = False  # True: integer variable for capex or step costs; False: approximate costs as linear
+        self.congestion_constr_road = False  # Whether to have congestion threshold limits on road paths
+        self.congestion_constr_charge = True  # Whether to have congestion threshold limits at charging stations
         self.drop_trips = config['drop_trips']
         self.use_baseline_charge_stations = config['use_baseline_charge_stations']
 
@@ -126,6 +126,10 @@ class Experiment(ABC):
 
     @abstractmethod
     def plot(self):
+        """
+        Plot the experiment run's results.
+        :return: No return.
+        """
         raise NotImplementedError
 
 
