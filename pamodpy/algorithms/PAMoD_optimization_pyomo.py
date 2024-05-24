@@ -265,7 +265,7 @@ def PAMoD_optimization_pyomo(experiment):
                 del outputs
 
             m.constr_boundary = pe.ConstraintList()
-            if experiment.boundary:
+            if experiment.periodicity:
                 for vehicle_idx, PAMoDVehicle in enumerate(experiment.PAMoDVehicles):
                     nodes_start = PAMoDVehicle.filter_node_idx(None, None, experiment.startT)
                     nodes_end = PAMoDVehicle.filter_node_idx(None, None, experiment.endT - 1)
@@ -453,7 +453,7 @@ def obj_elec_energy_carbon_and_constr_UMax_charge_worker(U_list, UMax_charge, bu
                 else:
                     elec_energy_list.append(
                         (sum_product(U_list[vehicle_idx], PAMoDVehicle.energy_conv, index=E_charge_idx_l_eid_t)) *
-                        experiment.p_elec[t])
+                        experiment.p_elec_energy[t])
             else:
                 l, t, evse_id = l_t_eid
                 E_charge_idx_l_eid_t = PAMoDVehicle.filter_edge_idx('charge', l, l, evse_id=evse_id, t=t)
@@ -462,7 +462,7 @@ def obj_elec_energy_carbon_and_constr_UMax_charge_worker(U_list, UMax_charge, bu
                 else:
                     elec_energy_list.append(
                         (sum_product(U_list[vehicle_idx], PAMoDVehicle.energy_conv, index=E_charge_idx_l_eid_t)) *
-                        experiment.p_elec[t])
+                        experiment.p_elec_energy[t])
                     elec_carbon_list.append(
                         (sum_product(U_list[vehicle_idx], PAMoDVehicle.energy_conv, index=E_charge_idx_l_eid_t)) *
                         experiment.carbon_intensity_grid[t] * experiment.p_carbon

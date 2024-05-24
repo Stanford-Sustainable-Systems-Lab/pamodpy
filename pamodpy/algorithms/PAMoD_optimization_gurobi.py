@@ -252,7 +252,7 @@ def PAMoD_optimization_gurobi(experiment):
             nodes_t = PAMoDVehicle.filter_node_idx(None, None, np.array(range(experiment.startT + 1, experiment.endT - 1)))
             m.addConstr(PAMoDVehicle.A[nodes_t] @ U_list[vehicle_idx] == 0)
 
-        if experiment.boundary:
+        if experiment.periodicity:
             for vehicle_idx, PAMoDVehicle in enumerate(experiment.PAMoDVehicles):
                 nodes_start = PAMoDVehicle.filter_node_idx(None, None, experiment.startT)
                 nodes_end = PAMoDVehicle.filter_node_idx(None, None, experiment.endT - 1)
