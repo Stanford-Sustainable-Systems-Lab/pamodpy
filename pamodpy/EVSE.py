@@ -16,9 +16,8 @@ class EVSE():
         self.manufacturer = df.loc[idx]['manufacturer'].values[0]
         self.model = df.loc[idx]['model'].values[0]
         self.year = df.loc[idx]['year'].values[0]
-        self.rate_AC = df.loc[idx]['rate_AC'].values[0]                 # [kW]
-        self.rate_DC = df.loc[idx]['rate_DC'].values[0]                 # [kW]
-        self.rate = max(self.rate_AC, self.rate_DC)
+        self.power_type = df.loc[idx]['power_type'].values[0]           # ['AC', 'DC']
+        self.rate = df.loc[idx]['rate'].values[0]                       # [kW]
         self.evse_unit_cost = df.loc[idx]['evse_unit_cost'].values[0]   # [$]
         self.p_infra_marginal = self.evse_unit_cost + (84 + 240)/2 + (200 + 250)/2
         self.p_infra_capital = 0.1 * (df.loc[idx]['capital_10unit_cost'].values[0] + (1500+3500)/2 + (325+1000)/2)
