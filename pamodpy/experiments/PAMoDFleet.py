@@ -125,6 +125,7 @@ class PAMoDFleet(metaclass=MetaPAMoDFleet):
             self.E_charge_idx = None            # list of edge indices corresponding to charge edges
             self.energy_conv = None             # (E, ) conversion factor for each edge from num vehicles to kWh (or gal gasoline if non-electric)
             self.power_conv = None              # (E, ) conversion factor for each charge edge from num vehicles to kW
+            self.c_to_rate = None               # dictionary with C entries, mapping charge level to charge rate
 
             self.G_edges_O_arr = None           # (E, ) np.array of edge origins in G.edges()
             self.G_edges_D_arr = None           # (E, ) np.array of edge destinations in G.edges()
@@ -156,7 +157,7 @@ class PAMoDFleet(metaclass=MetaPAMoDFleet):
             self.A_outflows = None
             self.A_inflows = None
 
-        def add_road_edges(self, O, D, t, uMax_road, Car):
+        def add_road_edges(self, O, D, t, uMax_road, Vehicle):
             O_idx = self.Fleet.locations.index(O)
             D_idx = self.Fleet.locations.index(D)
             if np.all(self.Fleet.od_matrix[O_idx, D_idx] == 0):
@@ -164,41 +165,38 @@ class PAMoDFleet(metaclass=MetaPAMoDFleet):
 
             dur = self.Fleet.time_matrix[O_idx, D_idx, int(np.floor((t * self.Fleet.deltaT) % (24 / self.Fleet.deltaT)))] / (60 * 60)
             dist = self.Fleet.dist_matrix[O_idx, D_idx, int(np.floor((t * self.Fleet.deltaT) % (24 / self.Fleet.deltaT)))]
-            energy = 0  # TODO: for (O,D) with pass_through, it should include energy needed to get to the boundary
+            energy = self.energy_OD[O_idx, D_idx, int(np.floor((t * self.Fleet.deltaT) % (24 / self.Fleet.deltaT)))] + Vehicle.compute_power * dur
 
             last_area_zone = len(self.Fleet.locations_excl_passthrough)
             golden_gate = last_area_zone + 1
             bay_bridge = last_area_zone + 2
             south = last_area_zone + 3
 
-            if O <= last_area_zone and D <= last_area_zone:
-                energy += self.energy_OD[O_idx, D_idx, int(np.floor((t * self.Fleet.deltaT) % (24 / self.Fleet.deltaT)))] + Car.compute_power * dur
-
             if self.Fleet.region in ["SF_190", "SF_25", "SF_5"]:
                 if O == golden_gate or D == golden_gate:
                     dur += 40 / 60
                     dist += 20
-                    if Car.powertrain == 'electric':
-                        energy += 20 / (Car.mi_per_kWh / Car.eta_charge) + Car.compute_power * dur
+                    if Vehicle.powertrain == 'electric':
+                        energy += 20 / (Vehicle.mi_per_kWh / Vehicle.eta_charge) + Vehicle.compute_power * dur
                     else:
-                        energy += 20 / Car.mi_per_gal + Car.compute_power * dur / KWH_PER_GAL_GAS
+                        energy += 20 / Vehicle.mi_per_gal + Vehicle.compute_power * dur / KWH_PER_GAL_GAS
                 if O == bay_bridge or D == bay_bridge:
                     dur += 20 / 60
                     dist += 15
-                    if Car.powertrain == 'electric':
-                        energy += 15 / (Car.mi_per_kWh / Car.eta_charge) + Car.compute_power * dur
+                    if Vehicle.powertrain == 'electric':
+                        energy += 15 / (Vehicle.mi_per_kWh / Vehicle.eta_charge) + Vehicle.compute_power * dur
                     else:
-                        energy += 15 / Car.mi_per_gal + Car.compute_power * dur / KWH_PER_GAL_GAS
+                        energy += 15 / Vehicle.mi_per_gal + Vehicle.compute_power * dur / KWH_PER_GAL_GAS
                 if O == south or D == south:
                     dur += 45 / 60
                     dist += 30
-                    if Car.powertrain == 'electric':
-                        energy += 30 / (Car.mi_per_kWh / Car.eta_charge) + Car.compute_power * dur
+                    if Vehicle.powertrain == 'electric':
+                        energy += 30 / (Vehicle.mi_per_kWh / Vehicle.eta_charge) + Vehicle.compute_power * dur
                     else:
-                        energy += 30 / Car.mi_per_gal + Car.compute_power * dur / KWH_PER_GAL_GAS
+                        energy += 30 / Vehicle.mi_per_gal + Vehicle.compute_power * dur / KWH_PER_GAL_GAS
 
             dur_deltaTs = self.Fleet.round_time(dur, min_val=1)
-            if Car.powertrain == 'electric':
+            if Vehicle.powertrain == 'electric':
                 energy_deltaCs = self.Fleet.round_energy(energy, min_val=1)
             else:
                 energy_deltaCs = 0
@@ -240,48 +238,57 @@ class PAMoDFleet(metaclass=MetaPAMoDFleet):
                     self.G.add_edge((l, c, t), (l, c, t + 1), dur=self.Fleet.deltaT, energy=0, dist=0, uMax_road=uMax_road,
                                     idle=True)
 
-        def add_charge_edges(self, l, rate, Car, throttle=True, evse_id=None):
+        def add_charge_edges(self, l, PAMoDVehicle, throttle_rate=None, evse=None):
+            Vehicle = PAMoDVehicle.Vehicle
             dur_deltaTs = 1
             dur = self.Fleet.deltaT * dur_deltaTs
-            energy_deltaCs = self.Fleet.round_energy(rate * dur * Car.eta_charge)
-            energy = self.Fleet.deltaC * energy_deltaCs
-            if energy_deltaCs < 1:
-                self.Fleet.logger.error(
-                    "With C={}, rate={} is too low to charge one level during dur_deltaTs={} and deltaTs={}".format(
-                        self.C, rate, dur_deltaTs, self.Fleet.deltaT))
-                return
             for t in range(self.Fleet.startT, self.Fleet.endT - dur_deltaTs):
                 for c in range(self.C - 1):
-                    if c + energy_deltaCs <= self.C - 1:
-                        if throttle:
-                            self.G.add_edge((l, c, t), (l, c + energy_deltaCs, t + dur_deltaTs), dur=dur,
-                                            energy=energy,
-                                            power=energy / dur,
-                                            energy_grid=energy / Car.eta_charge,
-                                            power_grid=energy / Car.eta_charge / dur)
+                    if evse is not None:
+                        if evse.power_type == 'AC':
+                            rate_charging_curve = min(evse.rate, Vehicle.max_charge_rate_AC)
+                        elif evse.power_type == 'DC':
+                            rate_charging_curve = min(evse.rate, Vehicle.max_charge_rate_DC, PAMoDVehicle.c_to_rate[c])
                         else:
+                            raise ValueError("Invalid power_type '{}'.  Must be 'AC' or 'DC'.".format(evse.power_type))
+                    elif throttle_rate is not None:
+                        rate_charging_curve = min(throttle_rate, Vehicle.max_charge_rate_DC, PAMoDVehicle.c_to_rate[c])
+                    else:
+                        raise ValueError("Either throttle_rate or evse must be provided.")
+                    energy_deltaCs = self.Fleet.round_energy(rate_charging_curve * dur * Vehicle.eta_charge)
+                    energy = self.Fleet.deltaC * energy_deltaCs
+                    if energy_deltaCs < 1:
+                        self.Fleet.logger.error(
+                            "With C={}, rate={} is too low to charge one level during dur_deltaTs={} and deltaTs={}".format(
+                                self.C, rate_charging_curve, dur_deltaTs, self.Fleet.deltaT))
+                        return
+                    if throttle_rate is None:
+                        if c + energy_deltaCs <= self.C - 1:
                             self.G.add_edge((l, c, t), (l, c + energy_deltaCs, t + dur_deltaTs), dur=dur,
                                             energy=energy,
                                             power=energy / dur,
-                                            energy_grid=energy / Car.eta_charge,
-                                            power_grid=energy / Car.eta_charge / dur,
-                                            rating=rate,
-                                            evse_id=evse_id)
+                                            energy_grid=energy / Vehicle.eta_charge,
+                                            power_grid=energy / Vehicle.eta_charge / dur,
+                                            evse_id=evse.evse_id)
+                        else:
+                            energy_topoff = self.Fleet.deltaC * (self.C - 1 - c)
+                            dur_deltaTs_topoff = self.Fleet.round_time((energy_topoff / rate_charging_curve) / Vehicle.eta_charge, min_val=1)
+                            dur_topoff = self.Fleet.deltaT * dur_deltaTs_topoff
+                            self.G.add_edge((l, c, t), (l, self.C - 1, t + dur_deltaTs_topoff), dur=dur_topoff,
+                                            energy=energy_topoff,
+                                            power=energy_topoff / dur_topoff,
+                                            energy_grid=energy_topoff / Vehicle.eta_charge,
+                                            power_grid=energy_topoff / Vehicle.eta_charge / dur_topoff,
+                                            evse_id=evse.evse_id)
                     else:
-                        if not throttle:
-                            energy_net_topoff = self.Fleet.deltaC * (self.C - 1 - c)
-                            dur_topoff = dur * ((self.C - 1 - c) / energy_deltaCs)
-                            # self.G.add_edge()  # TODO
-                if throttle:
-                    for energy_deltaCs_throttled in reversed(range(1, energy_deltaCs)):
-                        energy_throttled = self.Fleet.deltaC * energy_deltaCs_throttled
-                        for c in range(self.C - 1):
+                        for energy_deltaCs_throttled in reversed(range(1, energy_deltaCs + 1)):
+                            energy_throttled = self.Fleet.deltaC * energy_deltaCs_throttled
                             if c + energy_deltaCs_throttled <= self.C - 1:
                                 self.G.add_edge((l, c, t), (l, c + energy_deltaCs_throttled, t + dur_deltaTs), dur=dur,
                                                 energy=energy_throttled,
                                                 power=energy_throttled / dur,
-                                                energy_grid=energy_throttled / Car.eta_charge,
-                                                power_grid=energy_throttled / Car.eta_charge / dur)
+                                                energy_grid=energy_throttled / Vehicle.eta_charge,
+                                                power_grid=energy_throttled / Vehicle.eta_charge / dur)
 
         def filter_node_idx(self, l=None, c=None, t=None):
             """
@@ -358,7 +365,13 @@ class PAMoDFleet(metaclass=MetaPAMoDFleet):
 
         for PAMoDVehicle in self.PAMoDVehicles:
             if PAMoDVehicle.Vehicle.powertrain == 'electric':
-                PAMoDVehicle.C = int(np.round(PAMoDVehicle.Vehicle.batt_cap * self.batt_cap_range / self.deltaC)) + 1
+                PAMoDVehicle.C = int(np.round(PAMoDVehicle.Vehicle.batt_cap * (self.batt_cap_range[1] - self.batt_cap_range[0]) / self.deltaC)) + 1
+
+                PAMoDVehicle.c_to_rate = {}
+                for c in range(PAMoDVehicle.C):
+                    soc_percent = int(round((self.batt_cap_range[0] + c / (PAMoDVehicle.C - 1) * (
+                                self.batt_cap_range[1] - self.batt_cap_range[0])) * 100))
+                    PAMoDVehicle.c_to_rate[c] = PAMoDVehicle.Vehicle.soc_percent_to_rate[soc_percent]
             else:
                 PAMoDVehicle.C = 1
             PAMoDVehicle.G = nx.MultiDiGraph()
@@ -386,22 +399,11 @@ class PAMoDFleet(metaclass=MetaPAMoDFleet):
                     station = station_list[0]  # TODO: assuming here that each location has at most one station
                     ratings = [evse.rate for evse in station.EVSEs]
                     if self.charge_throttle:
-                        rate = min(max(ratings), max(PAMoDVehicle.Vehicle.max_charge_rate_AC, PAMoDVehicle.Vehicle.max_charge_rate_DC))  # TODO: this will not work; max_charge_rate_AC limit will not be enforced
-                        PAMoDVehicle.add_charge_edges(l, rate, PAMoDVehicle.Vehicle, throttle=True)  # TODO: loop Vehicles
+                        throttle_rate = min(max(ratings), max(PAMoDVehicle.Vehicle.max_charge_rate_AC, PAMoDVehicle.Vehicle.max_charge_rate_DC))  # TODO: this will not work; max_charge_rate_AC limit will not be enforced
+                        PAMoDVehicle.add_charge_edges(l, PAMoDVehicle, throttle_rate=throttle_rate)  # TODO: loop Vehicles
                     else:
                         for evse in station.EVSEs:
-                            rate, evse_id = evse.rate, evse.evse_id
-                            if rate <= 19.2:  # AC TODO: sloppy fix for identifying AC or DC station
-                                if PAMoDVehicle.Vehicle.max_charge_rate_AC == None or PAMoDVehicle.Vehicle.max_charge_rate_AC == 0:
-                                    continue
-                                elif rate > PAMoDVehicle.Vehicle.max_charge_rate_AC:
-                                    rate = PAMoDVehicle.Vehicle.max_charge_rate_AC
-                            else:  # DC
-                                if PAMoDVehicle.Vehicle.max_charge_rate_DC == None or PAMoDVehicle.Vehicle.max_charge_rate_DC == 0:
-                                    continue
-                                elif rate > PAMoDVehicle.Vehicle.max_charge_rate_DC:
-                                    rate = PAMoDVehicle.Vehicle.max_charge_rate_DC
-                            PAMoDVehicle.add_charge_edges(l, rate, PAMoDVehicle.Vehicle, throttle=False, evse_id=evse_id)  # TODO: loop Vehicles
+                            PAMoDVehicle.add_charge_edges(l, PAMoDVehicle, evse=evse)  # TODO: loop Vehicles
                 assert(PAMoDVehicle.N == PAMoDVehicle.G.number_of_nodes())  # Make sure no new nodes were created when adding edges
 
             PAMoDVehicle.E = len(PAMoDVehicle.G.edges)
