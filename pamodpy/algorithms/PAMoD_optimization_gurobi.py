@@ -38,7 +38,7 @@ from ..utils.constants import *
 
 U_const, UMax_const, PMax_const = 1000, 1, 10000
 
-def PAMoD_optimization_gurobi(experiment):
+def PAMoD_optimization_gurobi(experiment, opt_time_limit, threads):
     def obj_elec_energy_carbon_and_constr_UMax_charge(U_list, UMax_charge, build=True):
         if experiment.charge_throttle:
             l_t_eid_gen = ((l, t) for l in experiment.locations_excl_passthrough
@@ -268,7 +268,7 @@ def PAMoD_optimization_gurobi(experiment):
                 if output[0] is not None:
                     m.addConstr(output[0])
             del outputs
-        dist = sum([U_list[vehicle_idx] @ PAMoDVehicle.Dist * experiment.p_travel for vehicle_idx, PAMoDVehicle in enumerate(experiment.PAMoDVehicles)])
+        dist = gp.quicksum([U_list[vehicle_idx] @ PAMoDVehicle.Dist * experiment.p_travel for vehicle_idx, PAMoDVehicle in enumerate(experiment.PAMoDVehicles)])
         experiment.logger.info("--Created elec_demand and dist obj terms (elapsed={:.2f})".format(time.time() - tic))
 
         gas = 0
@@ -307,9 +307,10 @@ def PAMoD_optimization_gurobi(experiment):
             # m.Params.BarConvTol = 1e-10     # default is 1e-8; make tighter to spend less time in crossover
             m.Params.Crossover = 0
             m.Params.BarConvTol = 1e-6     # default is 1e-8; make looser if crossover is off to terminate sooner
-            m.Params.Threads = 54
+            m.Params.Threads = threads
             # m.Params.Presolve = 2             # default is -1 (auto); 2 is aggressive
             # m.Params.BarOrder = 1             # default is -1 (auto); 0 is Approximate Minimum Degree, 1 is Nested Dissection (usual?)
+            m.Params.TimeLimit = opt_time_limit
 
         experiment.logger.setLevel(logging.INFO)
 
@@ -362,7 +363,8 @@ def PAMoD_optimization_gurobi(experiment):
 
     experiment.logger.info("fleet_sizes = {}".format(experiment.fleet_sizes))
     experiment.logger.info("U value range: [{}, {}]".format(max([np.max(U_value) for U_value in U_value_list]), min([np.min(U_value) for U_value in U_value_list])))
-    experiment.logger.info("PMax value range: [{}, {}]".format(np.max(PMax_value), np.min(PMax_value)))
+    # experiment.logger.info("PMax value range: [{}, {}]".format(np.max(PMax_value), np.min(PMax_value)))
+    experiment.logger.info("PMax value: {}".format(PMax_value))
 
     X_list = []
     for U_value, PAMoDVehicle in zip(U_value_list, experiment.PAMoDVehicles):
@@ -392,7 +394,7 @@ def PAMoD_optimization_gurobi(experiment):
         del outputs
         U_trip_charge_idle = U_value - U_rebal
         U_trip_charge_idle_list.append(U_trip_charge_idle)
-    experiment.logger.info("U_rebal distance costs = {}".format(sum(U_rebal_dist_costs)))
+    experiment.logger.info("U_rebal distance costs = {}".format(gp.quicksum(U_rebal_dist_costs)))
 
     infra_value = 0
     if experiment.optimize_infra:
@@ -491,15 +493,15 @@ def obj_elec_energy_carbon_and_constr_UMax_charge_worker(U_list, UMax_charge, bu
                         experiment.carbon_intensity_grid[t] * experiment.p_carbon
                     )
                     lep_idx, evse_idx = experiment.get_lep_idx_evse_idx(l, evse_id)
-                    UMax_charge_constr_lhs.append((U_list[vehicle_idx][E_charge_idx_l_eid_t].sum()))
+                    UMax_charge_constr_lhs.append(gp.quicksum(U_list[vehicle_idx][E_charge_idx_l_eid_t]))
 
     if invalid < max(n_elec_vehicles, 1):
-        elec_energy_term = sum(elec_energy_list)
-        elec_carbon_term = sum(elec_carbon_list)
+        elec_energy_term = gp.quicksum(elec_energy_list)
+        elec_carbon_term = gp.quicksum(elec_carbon_list)
         if experiment.charge_throttle or n_elec_vehicles == 0:
             UMax_charge_constr = None
         else:
-            UMax_charge_constr = (sum(UMax_charge_constr_lhs) <= (UMax_charge[lep_idx, evse_idx:evse_idx+1]) * (
+            UMax_charge_constr = (gp.quicksum(UMax_charge_constr_lhs) <= (UMax_charge[lep_idx, evse_idx:evse_idx+1]) * (
                             UMax_const / U_const))
         if build:
             return elec_energy_term, elec_carbon_term, UMax_charge_constr, count
@@ -523,8 +525,8 @@ def constr_infra_worker(U_list, UMax_charge, l_lidx_ridx_t, experiment, count):
             E_charge_idx_l_t_rates = PAMoDVehicle.filter_edge_idx('charge', l, l, t=t,
                                                                     power_grid=(power_lb+0.5*experiment.deltaC/experiment.deltaT,
                                                                            experiment.charge_rate[-1]+0.5*experiment.deltaC/experiment.deltaT))
-            infra_constr_lhs.append(U_list[vehicle_idx][E_charge_idx_l_t_rates].sum())
-    infra_constr = (sum(infra_constr_lhs) <= (UMax_charge[lep_idx, rating_idx:].sum()) * (UMax_const / U_const))
+            infra_constr_lhs.append(gp.quicksum(U_list[vehicle_idx][E_charge_idx_l_t_rates]))
+    infra_constr = (gp.quicksum(infra_constr_lhs) <= gp.quicksum(UMax_charge[lep_idx, rating_idx:]) * (UMax_const / U_const))
     return infra_constr, count
 
 def obj_revenue_and_constr_UMax_road_worker(U_list, trip_flow, build, o_d_t, idx, experiment, count):
@@ -551,22 +553,22 @@ def obj_revenue_and_constr_UMax_road_worker(U_list, trip_flow, build, o_d_t, idx
             E_road_idx_r_nonidle_t = PAMoDVehicle.filter_edge_idx('road', O, D, idle=False, t=t)
             if len(E_road_idx_r_nonidle_t) != 0:
                 if experiment.drop_trips:
-                    trip_flow_constr2_lhs.append((U_list[vehicle_idx][E_road_idx_r_nonidle_t]).sum())
+                    trip_flow_constr2_lhs.append(gp.quicksum(U_list[vehicle_idx][E_road_idx_r_nonidle_t]))
                 else:
-                    trip_flow_constr2_lhs.append((U_list[vehicle_idx][E_road_idx_r_nonidle_t]).sum())
+                    trip_flow_constr2_lhs.append(gp.quicksum(U_list[vehicle_idx][E_road_idx_r_nonidle_t]))
                 if experiment.congestion_constr_road:
-                    UMax_road_constr_lhs.append((U_list[vehicle_idx][E_road_idx_r_nonidle_t]).sum())
+                    UMax_road_constr_lhs.append(gp.quicksum(U_list[vehicle_idx][E_road_idx_r_nonidle_t]))
             else:
                 invalid += 1
 
         if invalid < len(experiment.PAMoDVehicles):
             if experiment.drop_trips:
-                trip_flow_constr2 = (sum(trip_flow_constr2_lhs) >= trip_flow[idx])
+                trip_flow_constr2 = (gp.quicksum(trip_flow_constr2_lhs) >= trip_flow[idx])
             else:
-                trip_flow_constr2 = (sum(trip_flow_constr2_lhs) >= experiment.od_matrix[
+                trip_flow_constr2 = (gp.quicksum(trip_flow_constr2_lhs) >= experiment.od_matrix[
                         O_idx, D_idx, hour] * experiment.deltaT / U_const)
             if experiment.congestion_constr_road:
-                UMax_road_constr = (sum(UMax_road_constr_lhs) <= (0.1 * sum(experiment.fleet_sizes)) / U_const) # TODO have actual road congestion
+                UMax_road_constr = (gp.quicksum(UMax_road_constr_lhs) <= (0.1 * gp.quicksum(experiment.fleet_sizes)) / U_const) # TODO have actual road congestion
             return revenue_term, trip_flow_constr1, trip_flow_constr2, UMax_road_constr, count
         else:
             return 0, None, None, None, count
@@ -594,7 +596,7 @@ def obj_elec_demand_worker(U_list, PMax, p_elec_demand_interval_idx, lidx_l_t, e
             invalid += 1
 
     if invalid < max(n_elec_vehicles, 1):
-        return sum(obj_elec_demand_lhs) <= PMax[l_idx, p_elec_demand_interval_idx] * (PMax_const / U_const), count
+        return gp.quicksum(obj_elec_demand_lhs) <= PMax[l_idx, p_elec_demand_interval_idx] * (PMax_const / U_const), count
     else:
         return None, count
 

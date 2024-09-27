@@ -447,9 +447,9 @@ class PAMoDFleet(metaclass=MetaPAMoDFleet):
                     "-Created extended graph with {} nodes and {} edges. Total time elapsed={:.2f}".format(
                         PAMoDVehicle.N, PAMoDVehicle.E, time.time() - tic))
 
-    def run(self):
+    def run(self, opt_time_limit, threads):
         if self.config['algorithm'] == 'PAMoD_optimization_gurobi':
-            [X, U, U_trip_charge_idle, U_rebal, elec_energy, elec_demand, dist, revenue, fleet_cost, elec_carbon, infra, gas, gas_carbon] = PAMoD_optimization_gurobi(self)
+            [X, U, U_trip_charge_idle, U_rebal, elec_energy, elec_demand, dist, revenue, fleet_cost, elec_carbon, infra, gas, gas_carbon] = PAMoD_optimization_gurobi(self, opt_time_limit, threads)
         elif self.config['algorithm'] == 'PAMoD_optimization_pyomo':
             [X, U, U_trip_charge_idle, U_rebal, elec_energy, elec_demand, dist, revenue, fleet_cost, elec_carbon, infra, gas,
              gas_carbon] = PAMoD_optimization_pyomo(self)
