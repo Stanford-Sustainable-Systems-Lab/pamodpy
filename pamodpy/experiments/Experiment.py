@@ -22,13 +22,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 """
-import os
+
 import itertools
 import pickle
-from copy import deepcopy
 from abc import ABC, abstractmethod
-
-import numpy as np
 
 from ..Vehicle import Vehicle
 from ..utils.constants import *
@@ -54,7 +51,7 @@ class Experiment(ABC):
         self.startT = int(np.round(config['start_hour'] / self.deltaT))  # start time in time steps
         self.endT = self.startT + self.T  # end time in time steps
         self.deltaC = config['deltaC']  # energy step [kWh]
-        self.batt_cap_range = config['batt_cap_range']
+        self.batt_cap_ranges = config['batt_cap_range']
         self.charge_throttle = False
         self.Vehicles = [Vehicle(vehicle_name) for vehicle_name in config['Vehicles']]
         for compute_power, vehicle in zip(config['compute_power'], self.Vehicles):
@@ -70,7 +67,6 @@ class Experiment(ABC):
         self.time_matrix = None  # (L, L, 24) Numpy array of OD matrix with trip durations in [s]
         self.dist_matrix = None  # (L, L, 24) Numpy array of OD matrix with trip distances in [mi]
         self.od_matrix = None  # (L, L, 24) Numpy array of OD matrix with travel volume [# vehicles]
-        self.top_idx = None  # Numpy array of indices (not TAZ) of non-zero roads in matched_od_matrix_top
         self.EVSEs = [EVSE(evse_name) for evse_name in config['EVSEs']]  # 7.7, 20, 50.0, 150.0
         self.charge_rate = np.sort(
             np.unique(np.array([evse.rate for evse in self.EVSEs])))  # list of available charging rates [kW]
