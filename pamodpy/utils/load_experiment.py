@@ -4,6 +4,11 @@ from pathlib import Path
 import config
 
 def load_experiment(json_fname):
+    """
+    Load experiment configurations from a json file.
+    :param json_fname: The name of the json file in the experiment_configs directory to load experiment configurations
+    :return: The experiment object
+    """
     with open(json_fname, "r") as f:
         experiment_config = json.load(f)
 

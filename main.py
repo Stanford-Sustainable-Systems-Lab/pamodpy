@@ -5,6 +5,12 @@ import argparse
 import pamodpy
 
 def main(json_file, opt_time_limit, threads):
+    """
+    Main function to run the P-AMoD optimization.
+    :param json_file: The name of the json file in the experiment_configs directory to load experiment configurations
+    :param opt_time_limit: The time limit for the optimization in seconds
+    :param threads: The number of CPU threads to use for the optimization
+    """
     if json_file is None:
         new_experiment_config_jsons = [
             os.path.join('experiment_configs', 'sample.json')

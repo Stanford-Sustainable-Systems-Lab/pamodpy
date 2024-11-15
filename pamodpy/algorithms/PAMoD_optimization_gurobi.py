@@ -39,7 +39,14 @@ from ..utils.constants import *
 U_const, UMax_const, PMax_const = 1000, 1, 10000
 
 def PAMoD_optimization_gurobi(experiment, opt_time_limit, threads):
+    """
+    Solves the PAMoD optimization problem using Gurobi.
+    """
     def obj_elec_energy_carbon_and_constr_UMax_charge(U_list, UMax_charge, build=True):
+        """
+        In parallel, construct the objective function cost terms for electricity energy charges and carbon emissions and
+         constraint for maximum charge rate.
+        """
         if experiment.charge_throttle:
             l_t_eid_gen = ((l, t) for l in experiment.locations_excl_passthrough
                    for t in range(experiment.startT, experiment.endT))
@@ -51,19 +58,28 @@ def PAMoD_optimization_gurobi(experiment, opt_time_limit, threads):
 
         with pmp.ThreadingPool() as p:
             outputs = p.map(obj_elec_energy_carbon_and_constr_UMax_charge_worker,
-                            repeat(U_list), repeat(UMax_charge), repeat(build), l_t_eid_gen, repeat(experiment), count())
+                            repeat(U_list), repeat(UMax_charge), repeat(build), l_t_eid_gen,
+                            repeat(experiment), count())
         return outputs
 
     def obj_revenue_and_constr_UMax_road(U_list, trip_flow, build=True):
+        """
+        In parallel, construct the objective function cost term for revenue and constraint for maximum road usage.
+        """
         o_d_t_gen = ((x[0], x[1], t) for x in experiment.road_arcs
                      for t in range(experiment.startT, experiment.endT))
         idx_gen = range(len(experiment.road_arcs) * experiment.T)
         with pmp.ThreadingPool() as p:
             outputs = p.map(obj_revenue_and_constr_UMax_road_worker,
-                            repeat(U_list), repeat(trip_flow), repeat(build), o_d_t_gen, idx_gen, repeat(experiment), count())
+                            repeat(U_list), repeat(trip_flow), repeat(build), o_d_t_gen, idx_gen,
+                            repeat(experiment), count())
         return outputs
 
-    def obj_elec_demand(U_list, PMax, p_elec_demand_interval_idx, p_elec_demand_interval_rate, p_elec_demand_interval_nonzeros, build=True):
+    def obj_elec_demand(U_list, PMax, p_elec_demand_interval_idx, p_elec_demand_interval_rate,
+                        p_elec_demand_interval_nonzeros, build=True):
+        """
+        In parallel, construct the objective function cost term for electricity demand charges.
+        """
         elec_demand = 0
         for l_idx, l in enumerate(experiment.charge_stations.keys()):
             elec_demand += PMax[l_idx, p_elec_demand_interval_idx] * p_elec_demand_interval_rate * (
@@ -74,12 +90,16 @@ def PAMoD_optimization_gurobi(experiment, opt_time_limit, threads):
                         for t in p_elec_demand_interval_nonzeros)
             with pmp.ThreadingPool() as p:
                 outputs = p.map(obj_elec_demand_worker,
-                                repeat(U_list), repeat(PMax), repeat(p_elec_demand_interval_idx), lidx_l_t, repeat(experiment), count())
+                                repeat(U_list), repeat(PMax), repeat(p_elec_demand_interval_idx), lidx_l_t,
+                                repeat(experiment), count())
             return elec_demand, outputs
         else:
             return elec_demand
 
     def constr_infra(U_list, UMax_charge):
+        """
+        In parallel, construct the constraint for maximum charge rate at each charging station.
+        """
         l_lepidx_ridx_t_gen = ((l, lep_idx, rating_idx, t) for lep_idx, l in enumerate(experiment.locations_excl_passthrough)
                        for rating_idx, rating in enumerate(experiment.charge_rate)
                        for t in range(experiment.startT, experiment.endT))
@@ -90,6 +110,9 @@ def PAMoD_optimization_gurobi(experiment, opt_time_limit, threads):
         return outputs
 
     def post_opt_U_rebal(U_value, PAMoDVehicle):
+        """
+        In parallel, determine the rebalancing vehicle flows in post-optimization.
+        """
         o_d_t_gen = ((x[0], x[1], t) for x in experiment.road_arcs
                      for t in range(experiment.startT, experiment.endT))
         with pmp.ThreadingPool() as p:
@@ -97,6 +120,9 @@ def PAMoD_optimization_gurobi(experiment, opt_time_limit, threads):
         return outputs
 
     def post_opt_X(U_value, PAMoDVehicle):
+        """
+        In parallel, determine the vehicle stocks in post-optimization.
+        """
         t_gen = (t for t in range(experiment.startT + 1, experiment.endT - 1))
         with pmp.ThreadingPool() as p:
             outputs = p.map(post_opt_X_worker, repeat(U_value), repeat(PAMoDVehicle), t_gen)
@@ -454,6 +480,10 @@ def PAMoD_optimization_gurobi(experiment, opt_time_limit, threads):
 
 
 def obj_elec_energy_carbon_and_constr_UMax_charge_worker(U_list, UMax_charge, build, l_t_eid, experiment, count):
+    """
+    Construct the objective function cost term for electricity energy charges and carbon emissions for the given
+    location, time, and EVSE ID.
+    """
     UMax_charge_constr_lhs = []
     elec_energy_list = []
     elec_carbon_list = []
@@ -514,6 +544,9 @@ def obj_elec_energy_carbon_and_constr_UMax_charge_worker(U_list, UMax_charge, bu
             return 0, 0
 
 def constr_infra_worker(U_list, UMax_charge, l_lidx_ridx_t, experiment, count):
+    """
+    Construct the constraint for maximum charge rate at the given location, rating, and time.
+    """
     l, lep_idx, rating_idx, t = l_lidx_ridx_t
     if rating_idx == 0:
         power_lb = 0
@@ -530,6 +563,10 @@ def constr_infra_worker(U_list, UMax_charge, l_lidx_ridx_t, experiment, count):
     return infra_constr, count
 
 def obj_revenue_and_constr_UMax_road_worker(U_list, trip_flow, build, o_d_t, idx, experiment, count):
+    """
+    Construct the objective function cost term for revenue and constraint for maximum road usage for the given origin,
+    destination, and time.
+    """
     O, D, t = o_d_t
     O_idx = experiment.locations.index(O)
     D_idx = experiment.locations.index(D)
@@ -577,6 +614,9 @@ def obj_revenue_and_constr_UMax_road_worker(U_list, trip_flow, build, o_d_t, idx
 
 
 def obj_elec_demand_worker(U_list, PMax, p_elec_demand_interval_idx, lidx_l_t, experiment, count):
+    """
+    Construct the objective function cost term for electricity demand charges for the given location and time.
+    """
     l_idx, l, t = lidx_l_t
 
     obj_elec_demand_lhs = []
@@ -601,6 +641,9 @@ def obj_elec_demand_worker(U_list, PMax, p_elec_demand_interval_idx, lidx_l_t, e
         return None, count
 
 def post_opt_U_rebal_worker(U_value, PAMoDVehicle, o_d_t, experiment):
+    """
+    Determine the rebalancing vehicle flows in post-optimization for the given origin, destination, and time.
+    """
     O, D, t = o_d_t
     O_idx = experiment.locations.index(O)
     D_idx = experiment.locations.index(D)
@@ -615,5 +658,8 @@ def post_opt_U_rebal_worker(U_value, PAMoDVehicle, o_d_t, experiment):
                 U_non_idle_r_t_sum - demand_r_t / U_const) / U_non_idle_r_t_sum
 
 def post_opt_X_worker(U_value, PAMoDVehicle, t):
+    """
+    Determine the vehicle stocks in post-optimization for the given time.
+    """
     nodes_t = PAMoDVehicle.filter_node_idx(None, None, t)
     return nodes_t, PAMoDVehicle.A_inflows[nodes_t] @ U_value * U_const
