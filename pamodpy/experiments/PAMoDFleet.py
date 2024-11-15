@@ -103,11 +103,12 @@ class PAMoDFleet(metaclass=MetaPAMoDFleet):
         self.build()
 
     class PAMoDVehicle():
-        def __init__(self, Fleet, Vehicle, energy_OD, fleet_size):
+        def __init__(self, Fleet, Vehicle, energy_OD, fleet_size, batt_cap_range):
             self.Fleet = Fleet                  # outer class, PAMoDFleet()
             self.Vehicle = Vehicle                      # corresponding Vehicle
             self.energy_OD = energy_OD          # corresponding energy_OD numpy array
             self.fleet_size = fleet_size        # corresponding fleet_size
+            self.batt_cap_range = batt_cap_range  # corresponding batt_cap_range
 
             self.G = None                       # NetworkX graph of the extended P-AMoD graph (locations, SOC level, time)
             self.C = None                       # number of charge levels
@@ -248,11 +249,11 @@ class PAMoDFleet(metaclass=MetaPAMoDFleet):
                         if evse.power_type == 'AC':
                             rate_charging_curve = min(evse.rate, Vehicle.max_charge_rate_AC)
                         elif evse.power_type == 'DC':
-                            rate_charging_curve = min(evse.rate, Vehicle.max_charge_rate_DC, PAMoDVehicle.c_to_rate[c])
+                            rate_charging_curve = min(evse.rate, PAMoDVehicle.c_to_rate[c])
                         else:
                             raise ValueError("Invalid power_type '{}'.  Must be 'AC' or 'DC'.".format(evse.power_type))
                     elif throttle_rate is not None:
-                        rate_charging_curve = min(throttle_rate, Vehicle.max_charge_rate_DC, PAMoDVehicle.c_to_rate[c])
+                        rate_charging_curve = min(throttle_rate, PAMoDVehicle.c_to_rate[c])
                     else:
                         raise ValueError("Either throttle_rate or evse must be provided.")
                     energy_deltaCs = self.Fleet.round_energy(rate_charging_curve * dur * Vehicle.eta_charge)
@@ -361,16 +362,16 @@ class PAMoDFleet(metaclass=MetaPAMoDFleet):
         self.L = len(self.locations)
 
         for vehicle_idx in range(len(self.Vehicles)):
-            self.PAMoDVehicles.append(self.PAMoDVehicle(self, self.Vehicles[vehicle_idx], self.energy_ODs[vehicle_idx], self.fleet_sizes[vehicle_idx]))
+            self.PAMoDVehicles.append(self.PAMoDVehicle(self, self.Vehicles[vehicle_idx], self.energy_ODs[vehicle_idx], self.fleet_sizes[vehicle_idx], self.batt_cap_ranges[vehicle_idx]))
 
         for PAMoDVehicle in self.PAMoDVehicles:
             if PAMoDVehicle.Vehicle.powertrain == 'electric':
-                PAMoDVehicle.C = int(np.round(PAMoDVehicle.Vehicle.batt_cap * (self.batt_cap_range[1] - self.batt_cap_range[0]) / self.deltaC)) + 1
+                PAMoDVehicle.C = int(np.round(PAMoDVehicle.Vehicle.batt_cap * (PAMoDVehicle.batt_cap_range[1] - PAMoDVehicle.batt_cap_range[0]) / self.deltaC)) + 1
 
                 PAMoDVehicle.c_to_rate = {}
                 for c in range(PAMoDVehicle.C):
-                    soc_percent = int(round((self.batt_cap_range[0] + c / (PAMoDVehicle.C - 1) * (
-                                self.batt_cap_range[1] - self.batt_cap_range[0])) * 100))
+                    soc_percent = int(round((PAMoDVehicle.batt_cap_range[0] + c / (PAMoDVehicle.C - 1) * (
+                                PAMoDVehicle.batt_cap_range[1] - PAMoDVehicle.batt_cap_range[0])) * 100))
                     PAMoDVehicle.c_to_rate[c] = PAMoDVehicle.Vehicle.soc_percent_to_rate[soc_percent]
             else:
                 PAMoDVehicle.C = 1
