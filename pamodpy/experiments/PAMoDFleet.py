@@ -175,26 +175,26 @@ class PAMoDFleet(metaclass=MetaPAMoDFleet):
 
             if self.Fleet.region in ["SF_190", "SF_25", "SF_5"]:
                 if O == golden_gate or D == golden_gate:
-                    dur += 40 / 60
-                    dist += 20
-                    if Vehicle.powertrain == 'electric':
-                        energy += 20 / (Vehicle.mi_per_kWh / Vehicle.eta_charge) + Vehicle.compute_power * dur
-                    else:
-                        energy += 20 / Vehicle.mi_per_gal + Vehicle.compute_power * dur / KWH_PER_GAL_GAS
-                if O == bay_bridge or D == bay_bridge:
                     dur += 20 / 60
+                    dist += 13
+                    if Vehicle.powertrain == 'electric':
+                        energy += 13 / (Vehicle.mi_per_kWh / Vehicle.eta_charge) + Vehicle.compute_power * dur
+                    else:
+                        energy += 13 / Vehicle.mi_per_gal + Vehicle.compute_power * dur / KWH_PER_GAL_GAS
+                if O == bay_bridge or D == bay_bridge:
+                    dur += 25 / 60
+                    dist += 10
+                    if Vehicle.powertrain == 'electric':
+                        energy += 10 / (Vehicle.mi_per_kWh / Vehicle.eta_charge) + Vehicle.compute_power * dur
+                    else:
+                        energy += 10 / Vehicle.mi_per_gal + Vehicle.compute_power * dur / KWH_PER_GAL_GAS
+                if O == south or D == south:
+                    dur += 23 / 60
                     dist += 15
                     if Vehicle.powertrain == 'electric':
                         energy += 15 / (Vehicle.mi_per_kWh / Vehicle.eta_charge) + Vehicle.compute_power * dur
                     else:
                         energy += 15 / Vehicle.mi_per_gal + Vehicle.compute_power * dur / KWH_PER_GAL_GAS
-                if O == south or D == south:
-                    dur += 45 / 60
-                    dist += 30
-                    if Vehicle.powertrain == 'electric':
-                        energy += 30 / (Vehicle.mi_per_kWh / Vehicle.eta_charge) + Vehicle.compute_power * dur
-                    else:
-                        energy += 30 / Vehicle.mi_per_gal + Vehicle.compute_power * dur / KWH_PER_GAL_GAS
 
             dur_deltaTs = self.Fleet.round_time(dur, min_val=1)
             if Vehicle.powertrain == 'electric':
