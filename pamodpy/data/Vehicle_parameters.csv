@@ -1,7 +1,8 @@
 name,make,model,year,trim,powertrain,m,Af,Cd,Cr,batt_cap,max_charge_rate_AC,max_charge_rate_DC,mi_per_kWh,mi_per_gal,price,energies_filename
-2021 Hyundai IONIQ Electric SE,Hyundai,IONIQ Electric,2021,SE,electric,1529.06,Af,0.25,0.01,38.3,7.2,50,4.502689799,NA,33245,energies_2021_Hyundai_IONIQ_Electric_SE.npy
-2021 Hyundai IONIQ Hybrid SE,Hyundai,IONIQ Hybrid,2021,SE,hybrid,1374.8385,Af,0.25,0.01,NA,NA,NA,NA,62.8,25350,energies_2021_Hyundai_IONIQ_Hybrid_SE.npy
+2021 Hyundai IONIQ Electric SE,Hyundai,IONIQ Electric,2021,SE,electric,1529.06,2.41,0.24,0.01,38.3,7.2,50,4.502689799,NA,33245,energies_2021_Hyundai_IONIQ_Electric_SE.npy
+2021 Hyundai IONIQ Hybrid SE,Hyundai,IONIQ Hybrid,2021,SE,hybrid,1374.8385,2.39,0.24,0.01,NA,NA,NA,NA,52.3,25350,energies_2021_Hyundai_IONIQ_Hybrid_SE.npy
 2024 Dacia Spring Electric 65 Expression,Dacia,Spring,2024,Electric 65 Expression,electric,984,2.13,0.35,NA,25,7,34,4.602749572,NA,20457,energies_2024_Dacia_Spring_Electric_65_Expression.npy
 2023 Chevrolet Bolt EV 1LT,Chevrolet,Bolt EV,2023,1LT,electric,1628,2.61,0.308,NA,65,11.5,55,3.932729065,NA,26500,energies_2023_Chevrolet_Bolt_EV_1LT.npy
 2024 Tesla Model 3 Long Range RWD,Tesla,Model 3,2024,Long Range RWD,electric,1765,2.41,0.219,NA,79.7,11.5,250,4.568905825,NA,42490,energies_2024_Tesla_Model_3_Long_Range_RWD.npy
 2024 Jaguar I-PACE EV400 R-Dynamic HSE,Jaguar,I-PACE,2024,EV400 R-Dynamic HSE,electric,2170,2.65,0.29,NA,84.7,11,104,2.465758699,NA,72500,energies_2024_Jaguar_I-PACE_EV400_R-Dynamic_HSE.npy
+2024 Hyundai IONIQ 5 SE,Hyundai,IONIQ 5,2024,SE,electric,1930,2.73,0.288,NA,77.4,10.9,250,3.655124660,NA,45850,energies_2024_Hyundai_IONIQ_5_SE.npy
