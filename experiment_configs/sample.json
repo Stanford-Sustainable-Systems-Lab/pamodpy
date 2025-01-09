@@ -16,18 +16,18 @@
   ],
   "charge_throttle": false,
   "EVSEs": [
-    "AC 7.7kW",
-    "DC 22.5kW",
+    "AC 6.6kW",
+    "AC 11.5kW",
     "DC 50kW"
   ],
   "Vehicles": [
-    "2023 Dacia Spring Essential"
+    "2024 Dacia Spring Electric 65 Expression"
   ],
   "fleet_sizes": [
     154775
   ],
   "compute_power": [
-    1
+    0.5
   ],
   "p_travel": 0.0789,
   "p_ownership_excl_deprec": 2530,
