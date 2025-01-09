@@ -1,6 +1,6 @@
-name,manufacturer,model,year,rate,power_type,per_plug_hardware_cost,per_plug_installation_cost
-AC 6.6kW,NA,NA,NA,6.6,AC,3127,2837
-AC 11.5kW,NA,NA,NA,11.5,AC,5981,4514
-DC 50kW,NA,NA,NA,50,DC,28401,17692
-DC 100kW,NA,NA,NA,100,DC,51701,18135
-DC 250kW,NA,NA,NA,250,DC,107500,22116
+name,manufacturer,model,year,rate,power_type,per_plug_hardware_cost,per_plug_installation_cost,other_per_site_costs
+AC 6.6kW,NA,NA,NA,6.6,AC,3127,2837,0
+AC 11.5kW,NA,NA,NA,11.5,AC,5981,4514,0
+DC 50kW,NA,NA,NA,50,DC,28401,17692,0
+DC 100kW,NA,NA,NA,100,DC,51701,18135,0
+DC 250kW,NA,NA,NA,250,DC,107500,22116,0
