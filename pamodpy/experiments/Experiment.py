@@ -51,7 +51,7 @@ class Experiment(ABC):
         self.startT = int(np.round(config['start_hour'] / self.deltaT))  # start time in time steps
         self.endT = self.startT + self.T  # end time in time steps
         self.deltaC = config['deltaC']  # energy step [kWh]
-        self.batt_cap_ranges = config['batt_cap_range']
+        self.batt_cap_ranges = config['batt_cap_ranges']
         self.charge_throttle = False
         self.Vehicles = [Vehicle(vehicle_name) for vehicle_name in config['Vehicles']]
         for compute_power, vehicle in zip(config['compute_power'], self.Vehicles):
