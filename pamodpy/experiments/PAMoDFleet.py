@@ -206,7 +206,7 @@ class PAMoDFleet(metaclass=MetaPAMoDFleet):
                 return False
 
             hour = int(np.floor((t * self.Fleet.deltaT) % (24 / self.Fleet.deltaT)))
-            demand = self.Fleet.od_matrix[O_idx, D_idx, hour] * self.Fleet.deltaT
+            demand = np.round(self.Fleet.od_matrix[O_idx, D_idx, hour] * self.Fleet.deltaT)
 
             if energy_deltaCs > self.C:
                 self.Fleet.logger.error(

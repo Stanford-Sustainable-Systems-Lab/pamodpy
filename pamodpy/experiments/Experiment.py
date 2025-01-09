@@ -158,7 +158,7 @@ class SF_190(Experiment):
         self.dist_matrix = np.nan_to_num(np.load(os.path.join(self.data_path,
                                                               'distance_matrix (1).npy')))  # (193, 193, 24) Numpy array of OD matrix with trip distances in [mi]
         self.od_matrix = np.load(os.path.join(self.data_path,
-                                              'matched_od_matrix_top.npy'))  # (193, 193, 24) Numpy array of OD matrix with travel volume [# vehicles]
+                                              'matched_od_matrix_top.npy')) * 0.1  # (193, 193, 24) Numpy array of OD matrix with travel volume [# vehicles]
         for x in itertools.product([self.locations.index(191), self.locations.index(192), self.locations.index(193)], [self.locations.index(191), self.locations.index(192), self.locations.index(193)]):
             self.od_matrix[x[0], x[1], :] = 0
         self.top_idx = np.load(os.path.join(self.data_path,
@@ -195,7 +195,7 @@ class SF_5(Experiment):
         self.dist_matrix = np.nan_to_num(np.load(os.path.join(self.data_path,
                                                               'distance_matrix.npy')))  # (8, 8, 24) Numpy array of OD matrix with trip distances in [mi]
         self.od_matrix = np.load(os.path.join(self.data_path,
-                                              'od_matrix.npy'))  # (8, 8, 24) Numpy array of OD matrix with travel volume [# vehicles]
+                                              'od_matrix.npy')) * 0.1  # (8, 8, 24) Numpy array of OD matrix with travel volume [# vehicles]
         for x in itertools.product([self.locations.index(6), self.locations.index(7), self.locations.index(8)], [self.locations.index(6), self.locations.index(7), self.locations.index(8)]):
             self.od_matrix[x[0], x[1], :] = 0
         self.revenue_matrix = self.dist_matrix * 0.91 + self.time_matrix / 60 * 0.39 + 2.20 + 2.70  # (8, 8, 24) Numpy array of OD matrix with trip revenue in [$]
@@ -229,7 +229,7 @@ class SF_25(Experiment):
         self.dist_matrix = np.nan_to_num(np.load(os.path.join(self.data_path,
                                                               'distance_matrix.npy')))  # (28, 28, 24) Numpy array of OD matrix with trip distances in [mi]
         self.od_matrix = np.load(os.path.join(self.data_path,
-                                              'od_matrix.npy'))  # (28, 28, 24) Numpy array of OD matrix with travel volume [# vehicles]
+                                              'od_matrix.npy')) * 0.1  # (28, 28, 24) Numpy array of OD matrix with travel volume [# vehicles]
         for x in itertools.product([self.locations.index(26), self.locations.index(27), self.locations.index(28)], [self.locations.index(26), self.locations.index(27), self.locations.index(28)]):
             self.od_matrix[x[0], x[1], :] = 0
         self.revenue_matrix = self.dist_matrix * 0.91 + self.time_matrix / 60 * 0.39 + 2.20 + 2.70  # (28, 28, 24) Numpy array of OD matrix with trip revenue in [$]
