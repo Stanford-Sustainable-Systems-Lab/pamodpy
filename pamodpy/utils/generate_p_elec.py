@@ -21,9 +21,9 @@ def generate_p_elec(rate_name, time_init, dt, num_days, start_hour):
     if rate_name == "BEV-2-S":
 
         energy_rates = {
-            "peak": 0.39971,
-            "off-peak": 0.18648,
-            "super_off-peak": 0.16321
+            "peak": 0.39247,
+            "off-peak": 0.17924,
+            "super_off-peak": 0.15597
         }
 
         demand_rates = {
