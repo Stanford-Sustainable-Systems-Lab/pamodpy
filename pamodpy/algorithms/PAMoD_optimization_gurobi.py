@@ -308,7 +308,7 @@ def PAMoD_optimization_gurobi(experiment, opt_time_limit, threads):
         # Set objective
         fleet_cost = 0
         for vehicle_idx in range(len(experiment.Vehicles)):
-            fleet_cost += fleet_sizes[vehicle_idx] * np.round((experiment.Vehicles[vehicle_idx].price * 0.2 + experiment.p_ownership_excl_deprec) * (experiment.T * experiment.deltaT / HOURS_PER_YEAR), decimals=2) * (
+            fleet_cost += fleet_sizes[vehicle_idx] * np.round(((experiment.Vehicles[vehicle_idx].price + experiment.p_automation) * 0.2 + experiment.p_ownership_excl_deprec) * (experiment.T * experiment.deltaT / HOURS_PER_YEAR), decimals=2) * (
                     fleet_size_const / U_const)
 
         obj = elec_energy + elec_demand + elec_carbon + dist + revenue + fleet_cost + infra + gas + gas_carbon
@@ -383,7 +383,7 @@ def PAMoD_optimization_gurobi(experiment, opt_time_limit, threads):
     fleet_cost = 0
     for vehicle_idx in range(len(experiment.Vehicles)):
         fleet_cost += experiment.fleet_sizes[vehicle_idx] * (
-                experiment.Vehicles[vehicle_idx].price * 0.2 + experiment.p_ownership_excl_deprec) * (
+                (experiment.Vehicles[vehicle_idx].price + experiment.p_automation) * 0.2 + experiment.p_ownership_excl_deprec) * (
                                   experiment.T * experiment.deltaT / HOURS_PER_YEAR) * (
                               1 / U_const)
 

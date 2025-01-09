@@ -90,6 +90,7 @@ class Experiment(ABC):
         self.p_travel_ICE = config['p_travel_ICE']  #0.0878 # [$ / mi] https://newsroom.aaa.com/wp-content/uploads/2021/08/2021-YDC-Brochure-Live.pdf # travel cost (maintenance)
         self.p_gas = config['p_gas']  #4.127 # [$ / gal] https://www.eia.gov/dnav/pet/pet_pri_gnd_dcus_y05sf_a.htm
         self.p_carbon = config['p_carbon']  #0 # [$ / ton CO2]
+        self.p_automation = config['p_automation']  # [$]
 
         # Generated variables
         self.p_elec_energy, self.p_elec_demand = generate_p_elec(config['p_elec'], 1686812400, self.deltaT, int(np.ceil(config['num_hours'] / 24)), config['start_hour'])
