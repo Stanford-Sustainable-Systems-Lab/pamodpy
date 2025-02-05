@@ -67,6 +67,7 @@ class Experiment(ABC):
         self.time_matrix = None  # (L, L, 24) Numpy array of OD matrix with trip durations in [s]
         self.dist_matrix = None  # (L, L, 24) Numpy array of OD matrix with trip distances in [mi]
         self.od_matrix = None  # (L, L, 24) Numpy array of OD matrix with travel volume [# vehicles]
+        self.UMax_road = None  # (L, L, 24) Numpy array of maximum road capacity [# vehicles]
         self.EVSEs = [EVSE(evse_name) for evse_name in config['EVSEs']]  # 7.7, 20, 50.0, 150.0
         self.charge_rate = np.sort(
             np.unique(np.array([evse.rate for evse in self.EVSEs])))  # list of available charging rates [kW]
@@ -78,7 +79,7 @@ class Experiment(ABC):
         self.optimize_fleet_size = config['optimize_fleet_size']  # True: fleet size is a decision variable
         self.optimize_infra = config['optimize_infra']  # True: optimize charging infrastructure placement
         self.optimize_infra_mip = False  # True: integer variable for capex or step costs; False: approximate costs as linear
-        self.congestion_constr_road = False  # Whether to have congestion threshold limits on road paths
+        self.congestion_constr_road = True  # Whether to have congestion threshold limits on road paths
         self.congestion_constr_charge = True  # Whether to have congestion threshold limits at charging stations
         self.drop_trips = config['drop_trips']
         self.use_baseline_charge_stations = config['use_baseline_charge_stations']
@@ -96,6 +97,28 @@ class Experiment(ABC):
         self.p_elec_energy, self.p_elec_demand = generate_p_elec(config['p_elec'], 1686812400, self.deltaT, int(np.ceil(config['num_hours'] / 24)), config['start_hour'])
         self.carbon_intensity_grid = generate_carbon_intensity_grid(int(np.round(24 / self.deltaT)))
         self.logger = None
+        self.results = {
+            'fleet_sizes': None,
+            'costs': None,
+            'revenue': None,
+            'elec_energy': None,
+            'elec_demand': None,
+            'dist_total': None,
+            'dist_rebal': None,
+            'dist_passenger': None,
+            'carbon_total': None,
+            'carbon_elec': None,
+            'carbon_gas': None,
+            'carbon_elec_per_kwh': None,
+            'infra_plugs': None,
+            'infra_capacity': None,
+            'cost_per_mile': None,
+            'cost_per_passenger_mile': None,
+            'cost_elec_energy_per_kwh': None,
+            'cost_elec_per_kwh': None,
+            'trips_matched': None,
+            'trips_match_rate': None
+        }
 
     @abstractmethod
     def build(self):
@@ -159,6 +182,7 @@ class SF_190(Experiment):
                                                               'distance_matrix (1).npy')))  # (193, 193, 24) Numpy array of OD matrix with trip distances in [mi]
         self.od_matrix = np.load(os.path.join(self.data_path,
                                               'matched_od_matrix_top.npy')) * 0.1  # (193, 193, 24) Numpy array of OD matrix with travel volume [# vehicles]
+        self.UMax_road = np.tile(np.max(self.od_matrix, axis=2)[:, :, np.newaxis], (1, 1, self.od_matrix.shape[2])) # (193, 193, 24) Numpy array of maximum road capacity [# vehicles]
         for x in itertools.product([self.locations.index(191), self.locations.index(192), self.locations.index(193)], [self.locations.index(191), self.locations.index(192), self.locations.index(193)]):
             self.od_matrix[x[0], x[1], :] = 0
         self.top_idx = np.load(os.path.join(self.data_path,
@@ -196,6 +220,8 @@ class SF_5(Experiment):
                                                               'distance_matrix.npy')))  # (8, 8, 24) Numpy array of OD matrix with trip distances in [mi]
         self.od_matrix = np.load(os.path.join(self.data_path,
                                               'od_matrix.npy')) * 0.1  # (8, 8, 24) Numpy array of OD matrix with travel volume [# vehicles]
+        self.UMax_road = np.tile(np.max(self.od_matrix, axis=2)[:, :, np.newaxis], (
+        1, 1, self.od_matrix.shape[2]))  # (8, 8, 24) Numpy array of maximum road capacity [# vehicles]
         for x in itertools.product([self.locations.index(6), self.locations.index(7), self.locations.index(8)], [self.locations.index(6), self.locations.index(7), self.locations.index(8)]):
             self.od_matrix[x[0], x[1], :] = 0
         self.revenue_matrix = self.dist_matrix * 0.91 + self.time_matrix / 60 * 0.39 + 2.20 + 2.70  # (8, 8, 24) Numpy array of OD matrix with trip revenue in [$]
@@ -230,6 +256,8 @@ class SF_25(Experiment):
                                                               'distance_matrix.npy')))  # (28, 28, 24) Numpy array of OD matrix with trip distances in [mi]
         self.od_matrix = np.load(os.path.join(self.data_path,
                                               'od_matrix.npy')) * 0.1  # (28, 28, 24) Numpy array of OD matrix with travel volume [# vehicles]
+        self.UMax_road = np.tile(np.max(self.od_matrix, axis=2)[:, :, np.newaxis], (
+        1, 1, self.od_matrix.shape[2]))  # (28, 28, 24) Numpy array of maximum road capacity [# vehicles]
         for x in itertools.product([self.locations.index(26), self.locations.index(27), self.locations.index(28)], [self.locations.index(26), self.locations.index(27), self.locations.index(28)]):
             self.od_matrix[x[0], x[1], :] = 0
         self.revenue_matrix = self.dist_matrix * 0.91 + self.time_matrix / 60 * 0.39 + 2.20 + 2.70  # (28, 28, 24) Numpy array of OD matrix with trip revenue in [$]
@@ -315,6 +343,8 @@ class NYC_manh(Experiment):
                                                               'distance_matrix.npy')))  # (28, 28, 24) Numpy array of OD matrix with trip distances in [mi]
         self.od_matrix = np.load(os.path.join(self.data_path,
                                               'od_matrix.npy'))  # (28, 28, 24) Numpy array of OD matrix with travel volume [# vehicles]
+        self.UMax_road = np.tile(np.max(self.od_matrix, axis=2)[:, :, np.newaxis], (
+        1, 1, self.od_matrix.shape[2]))  # (28, 28, 24) Numpy array of maximum road capacity [# vehicles]
         # for x in itertools.product([self.locations.index(26), self.locations.index(27), self.locations.index(28)], [self.locations.index(26), self.locations.index(27), self.locations.index(28)]):  # update with borough numbers
         #     self.od_matrix[x[0], x[1], :] = 0
         self.revenue_matrix = self.dist_matrix * 0.91 + self.time_matrix / 60 * 0.39 + 2.20 + 2.70  # (28, 28, 24) Numpy array of OD matrix with trip revenue in [$]

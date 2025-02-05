@@ -385,7 +385,7 @@ class PAMoDFleet(metaclass=MetaPAMoDFleet):
             tic = time.time()
             self.logger.info('-Adding road edges for {}'.format(PAMoDVehicle.Vehicle.name))
             for idx, x in enumerate(itertools.product(self.locations, self.locations, np.arange(self.startT, self.endT))):
-                status = PAMoDVehicle.add_road_edges(x[0], x[1], x[2], 0.1 * sum(self.fleet_sizes), PAMoDVehicle.Vehicle)  # TODO have actual road congestion
+                status = PAMoDVehicle.add_road_edges(x[0], x[1], x[2], self.UMax_road[x[0], x[1], x[2]], PAMoDVehicle.Vehicle)
                 if status:
                     self.road_arcs.add((x[0], x[1]))
             print(PAMoDVehicle.num_dropped_trips, PAMoDVehicle.num_incl_trips)
