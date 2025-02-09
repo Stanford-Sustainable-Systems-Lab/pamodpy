@@ -385,10 +385,13 @@ class PAMoDFleet(metaclass=MetaPAMoDFleet):
             tic = time.time()
             self.logger.info('-Adding road edges for {}'.format(PAMoDVehicle.Vehicle.name))
             for idx, x in enumerate(itertools.product(self.locations, self.locations, np.arange(self.startT, self.endT))):
-                status = PAMoDVehicle.add_road_edges(x[0], x[1], x[2], self.UMax_road[x[0], x[1], x[2]], PAMoDVehicle.Vehicle)
+                o_idx = self.locations.index(x[0])
+                d_idx = self.locations.index(x[1])
+                t_idx = np.arange(self.startT, self.endT).tolist().index(x[2])
+                status = PAMoDVehicle.add_road_edges(x[0], x[1], x[2], self.UMax_road[o_idx, d_idx, t_idx], PAMoDVehicle.Vehicle)
                 if status:
                     self.road_arcs.add((x[0], x[1]))
-            print(PAMoDVehicle.num_dropped_trips, PAMoDVehicle.num_incl_trips)
+            print(f"Excluded trips due to insufficient maximum range = {PAMoDVehicle.num_dropped_trips}, included trips = {PAMoDVehicle.num_incl_trips}")
             for l in self.locations:  # idling # TODO: should idling be allowed at passthrough locations?
                 PAMoDVehicle.add_idle_road_edges(l, 0.4 * sum(self.fleet_sizes))  # TODO have actual idle congestion
 

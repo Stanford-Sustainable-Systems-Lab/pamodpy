@@ -170,7 +170,6 @@ def PAMoD_optimization_gurobi(experiment, opt_time_limit, threads):
             p_elec_demand_interval_names.append(interval_name)
             p_elec_demand_interval_nonzeros_list.append(nonzero_idxs)
             p_elec_demand_interval_rates.append(np.mean(rate_arr[nonzero_idxs]))
-    print(p_elec_demand_interval_names, p_elec_demand_interval_nonzeros_list, p_elec_demand_interval_rates)
     PMax = m.addMVar(shape=(len(experiment.locations_excl_passthrough), len(p_elec_demand_interval_names)), lb=0.0, name="PMax")
 
     if experiment.drop_trips:
@@ -258,7 +257,7 @@ def PAMoD_optimization_gurobi(experiment, opt_time_limit, threads):
                 m.addConstr(output[1])
         if output[2] is not None:
             m.addConstr(output[2])
-        if experiment.congestion_constr_road:
+        if experiment.congestion_constr_road and output[3] is not None:
             m.addConstr(output[3])
     del outputs
     experiment.logger.info("--Created revenue obj term and UMax_road constraint (elapsed={:.2f})".format(
@@ -285,7 +284,7 @@ def PAMoD_optimization_gurobi(experiment, opt_time_limit, threads):
             if output[0] is not None:
                 m.addConstr(output[0])
         del outputs
-    dist = gp.quicksum([U_list[vehicle_idx] @ PAMoDVehicle.Dist * experiment.p_travel for vehicle_idx, PAMoDVehicle in enumerate(experiment.PAMoDVehicles)])
+    dist = gp.quicksum([U_list[vehicle_idx] @ PAMoDVehicle.Dist for vehicle_idx, PAMoDVehicle in enumerate(experiment.PAMoDVehicles)])
     experiment.logger.info("--Created elec_demand and dist obj terms (elapsed={:.2f})".format(time.time() - tic))
 
     gas = 0
@@ -293,7 +292,7 @@ def PAMoD_optimization_gurobi(experiment, opt_time_limit, threads):
     for vehicle_idx, PAMoDVehicle in enumerate(experiment.PAMoDVehicles):
         if PAMoDVehicle.Vehicle.powertrain != 'electric':
             gas += U_list[vehicle_idx] @ PAMoDVehicle.energy_conv * experiment.p_gas
-            gas_carbon += U_list[vehicle_idx] @ PAMoDVehicle.energy_conv * TONS_CO2_PER_GAL_GAS * experiment.p_carbon
+            gas_carbon += U_list[vehicle_idx] @ PAMoDVehicle.energy_conv * TONS_CO2_PER_GAL_GAS
     experiment.logger.info("--Done creating optimization problem. Total time elapsed={:.2f}".format(time.time() - tic_start))
 
     # Set objective
@@ -302,7 +301,7 @@ def PAMoD_optimization_gurobi(experiment, opt_time_limit, threads):
         fleet_cost += fleet_sizes[vehicle_idx] * np.round(((experiment.Vehicles[vehicle_idx].price + experiment.p_automation) * 0.2 + experiment.p_ownership_excl_deprec) * (experiment.T * experiment.deltaT / HOURS_PER_YEAR), decimals=2) * (
                 fleet_size_const / U_const)
 
-    obj = elec_energy + elec_demand + elec_carbon + dist + revenue + fleet_cost + infra + gas + gas_carbon
+    obj = elec_energy + elec_demand + elec_carbon * experiment.p_carbon + dist * experiment.p_travel + revenue + fleet_cost + infra + gas + gas_carbon * experiment.p_carbon
     m.setObjective(obj, GRB.MINIMIZE)
 
     # Clean-up
@@ -404,7 +403,7 @@ def PAMoD_optimization_gurobi(experiment, opt_time_limit, threads):
 
     infra_value = 0
     if experiment.optimize_infra:
-        infra_value = infra.X
+        infra_value = np.sum(infra.getValue())
     elif experiment.use_baseline_charge_stations:
         for lep_idx, l in enumerate(experiment.locations_excl_passthrough):
             for evse_idx, evse in enumerate(experiment.EVSEs):
@@ -420,14 +419,14 @@ def PAMoD_optimization_gurobi(experiment, opt_time_limit, threads):
         revenue_final = revenue
     if any(Vehicle.powertrain != 'electric' for Vehicle in experiment.Vehicles):
         gas_final = gas.getValue() * U_const
-        gas_carbon_final = gas_carbon.getValue() * U_const
+        gas_carbon_final = gas_carbon.getValue() * experiment.p_carbon * U_const
     else:
         gas_final = 0
         gas_carbon_final = 0
     if any(Vehicle.powertrain == 'electric' for Vehicle in experiment.Vehicles):
         elec_energy_final = elec_energy.getValue() * U_const
         elec_demand_final = elec_demand.getValue() * U_const
-        elec_carbon_final = elec_carbon.getValue() * U_const
+        elec_carbon_final = elec_carbon.getValue() * experiment.p_carbon * U_const
     else:
         elec_energy_final = 0
         elec_demand_final = 0
@@ -439,50 +438,50 @@ def PAMoD_optimization_gurobi(experiment, opt_time_limit, threads):
         'elec_energy': elec_energy_final,
         'elec_demand': elec_demand_final,
         'elec_carbon': elec_carbon_final,
-        'dist_total': dist.getValue() * U_const,
-        'dist_rebal': sum(U_rebal_dist_costs),
-        'fleet': fleet_cost.getValue() * U_const,
+        'dist_total': dist.getValue() * experiment.p_travel * U_const,
+        'dist_rebal': np.sum(U_rebal_dist_costs),
+        'fleet': np.sum(fleet_cost.getValue()) * U_const,
         'infra': infra_value,
         'gas': gas_final,
         'gas_carbon': gas_carbon_final
                                    }
     experiment.results['revenue'] = revenue_final
-    experiment.results['elec_energy'] = sum([U_value @ PAMoDVehicle.energy_conv for U_value, PAMoDVehicle in zip(U_value_list, experiment.PAMoDVehicles)])
+    experiment.results['elec_energy'] = np.sum([U_value @ PAMoDVehicle.energy_conv for U_value, PAMoDVehicle in zip(U_value_list, experiment.PAMoDVehicles)])
     elec_demand_arr = np.zeros(experiment.T)
     for U_value, PAMoDVehicle in zip(U_value_list, experiment.PAMoDVehicles):
         for t_idx, t in enumerate(range(experiment.startT, experiment.endT)):
             E_charge_idx_t = PAMoDVehicle.filter_edge_idx('charge', t=t)
             elec_demand_arr[t_idx] += np.sum(np.multiply(U_value[E_charge_idx_t], PAMoDVehicle.power_conv[E_charge_idx_t]))
-    experiment.results['elec_demand'] = max(elec_demand_arr)
-    experiment.results['dist_total'] = sum([U_value @ PAMoDVehicle.Dist for U_value, PAMoDVehicle in zip(U_value_list, experiment.PAMoDVehicles)])
-    experiment.results['dist_rebal'] = sum([U_rebal @ PAMoDVehicle.Dist for U_rebal, PAMoDVehicle in zip(U_rebal_list, experiment.PAMoDVehicles)])
+    experiment.results['elec_demand'] = np.max(elec_demand_arr)
+    experiment.results['dist_total'] = dist.getValue() * U_const
+    experiment.results['dist_rebal'] = np.sum([U_rebal @ PAMoDVehicle.Dist for U_rebal, PAMoDVehicle in zip(U_rebal_list, experiment.PAMoDVehicles)])
     experiment.results['dist_passenger'] = experiment.results['dist_total'] - experiment.results['dist_rebal']
-    experiment.results['carbon_elec'] = experiment.results['costs']['elec_carbon'] / experiment.p_carbon
-    experiment.results['carbon_gas'] = experiment.results['costs']['elec_gas'] / experiment.p_carbon
+    experiment.results['carbon_elec'] = elec_carbon.getValue() * U_const if any(Vehicle.powertrain == 'electric' for Vehicle in experiment.Vehicles) else 0
+    experiment.results['carbon_gas'] = gas_carbon.getValue() * U_const if any(Vehicle.powertrain != 'electric' for Vehicle in experiment.Vehicles) else 0
     experiment.results['carbon_total'] = experiment.results['carbon_elec'] + experiment.results['carbon_gas']
-    experiment.results['carbon_elec_per_kwh'] = experiment.results['carbon_elec'] / experiment.results['elec_energy']
+    experiment.results['carbon_elec_per_kwh'] = np.divide(experiment.results['carbon_elec'], experiment.results['elec_energy'])
     experiment.results['infra_plugs'] = np.sum(experiment.UMax_charge)
     experiment.results['infra_capacity'] = np.sum(experiment.UMax_charge * experiment.charge_rate)
-    experiment.results['cost_per_mile'] = sum(experiment.results['costs'].values() - experiment.results['costs']['dist_rebal']) / experiment.results['dist_total']
-    experiment.results['cost_per_passenger_mile'] = sum(experiment.results['costs'].values() - experiment.results['costs']['dist_rebal']) / experiment.results['dist_passenger']
-    experiment.results['cost_elec_energy_per_kwh'] = experiment.results['costs']['elec_energy'] / experiment.results['elec_energy']
-    experiment.results['cost_energy_per_kwh'] = (experiment.results['costs']['elec_energy'] + experiment.results['costs']['elec_demand']) / experiment.results['elec_energy']
-    experiment.results['trips_matched'] = sum(experiment.od_matrix) if experiment.drop_trips else sum(trip_flow_value)
-    experiment.results['trips_match_rate'] = experiment.results['trips_matched'] / sum(experiment.od_matrix)
+    experiment.results['cost_per_mile'] = np.divide(sum(experiment.results['costs'].values()) - experiment.results['costs']['dist_rebal'], experiment.results['dist_total'])
+    experiment.results['cost_per_passenger_mile'] = np.divide(sum(experiment.results['costs'].values()) - experiment.results['costs']['dist_rebal'], experiment.results['dist_passenger'])
+    experiment.results['cost_elec_energy_per_kwh'] = np.divide(experiment.results['costs']['elec_energy'], experiment.results['elec_energy'])
+    experiment.results['cost_elec_per_kwh'] = np.divide((experiment.results['costs']['elec_energy'] + experiment.results['costs']['elec_demand']), experiment.results['elec_energy'])
+    experiment.results['trips_matched'] = experiment.num_incl_trips if experiment.drop_trips else np.sum(trip_flow_value)
+    experiment.results['trips_match_rate'] = np.divide(experiment.results['trips_matched'], np.sum(experiment.od_matrix))
 
-    for key, value in experiment.results:
+    for key, value in experiment.results.items():
         experiment.logger.info("{}: {}".format(key, value))
 
     return [np.array(X_list, dtype=object), np.array(U_value_list, dtype=object) * U_const, np.array(U_trip_charge_idle_list, dtype=object) * U_const, np.array(U_rebal_list, dtype=object) * U_const,
-            elec_energy_final,
-            elec_demand_final,
-            dist.getValue() * U_const,
-            revenue_final,
-            fleet_cost * U_const,
-            elec_carbon_final,
-            infra_value,
-            gas_final,
-            gas_carbon_final
+            experiment.results['costs']['elec_energy'],
+            experiment.results['costs']['elec_demand'],
+            experiment.results['costs']['dist_total'],
+            experiment.results['revenue'],
+            experiment.results['costs']['fleet'],
+            experiment.results['costs']['elec_carbon'],
+            experiment.results['costs']['infra'],
+            experiment.results['costs']['gas'],
+            experiment.results['costs']['gas_carbon']
             ]  # TODO this won't work for load_opt == True
 
 
@@ -513,7 +512,7 @@ def obj_elec_energy_carbon_and_constr_UMax_charge_worker(U_list, UMax_charge, bu
                     elec_carbon_list.append(
                         (U_list[vehicle_idx][E_charge_idx_l_eid_t] @ PAMoDVehicle.energy_conv[
                             E_charge_idx_l_eid_t]) *
-                        experiment.carbon_intensity_grid[t] * experiment.p_carbon
+                        experiment.carbon_intensity_grid[t]
                     )
             else:
                 l, t, evse_id = l_t_eid
@@ -527,7 +526,7 @@ def obj_elec_energy_carbon_and_constr_UMax_charge_worker(U_list, UMax_charge, bu
                     elec_carbon_list.append(
                         (U_list[vehicle_idx][E_charge_idx_l_eid_t] @ PAMoDVehicle.energy_conv[
                             E_charge_idx_l_eid_t]) *
-                        experiment.carbon_intensity_grid[t] * experiment.p_carbon
+                        experiment.carbon_intensity_grid[t]
                     )
                     lep_idx, evse_idx = experiment.get_lep_idx_evse_idx(l, evse_id)
                     UMax_charge_constr_lhs.append(gp.quicksum(U_list[vehicle_idx][E_charge_idx_l_eid_t]))
