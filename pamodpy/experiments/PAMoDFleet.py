@@ -164,9 +164,9 @@ class PAMoDFleet(metaclass=MetaPAMoDFleet):
             if np.all(self.Fleet.od_matrix[O_idx, D_idx] == 0):
                 return False
 
-            dur = self.Fleet.time_matrix[O_idx, D_idx, int(np.floor((t * self.Fleet.deltaT) % (24 / self.Fleet.deltaT)))] / (60 * 60)
-            dist = self.Fleet.dist_matrix[O_idx, D_idx, int(np.floor((t * self.Fleet.deltaT) % (24 / self.Fleet.deltaT)))]
-            energy = self.energy_OD[O_idx, D_idx, int(np.floor((t * self.Fleet.deltaT) % (24 / self.Fleet.deltaT)))] + Vehicle.compute_power * dur
+            dur = self.Fleet.time_matrix[O_idx, D_idx, int(np.floor((t * self.Fleet.deltaT) % 24))] / (60 * 60)
+            dist = self.Fleet.dist_matrix[O_idx, D_idx, int(np.floor((t * self.Fleet.deltaT) % 24))]
+            energy = self.energy_OD[O_idx, D_idx, int(np.floor((t * self.Fleet.deltaT) % 24))] + Vehicle.compute_power * dur
 
             last_area_zone = len(self.Fleet.locations_excl_passthrough)
             golden_gate = last_area_zone + 1
@@ -205,7 +205,7 @@ class PAMoDFleet(metaclass=MetaPAMoDFleet):
             if t + dur_deltaTs > self.Fleet.endT - 1:  # not enough time to make the trip
                 return False
 
-            hour = int(np.floor((t * self.Fleet.deltaT) % (24 / self.Fleet.deltaT)))
+            hour = int(np.floor((t * self.Fleet.deltaT) % 24))
             demand = np.round(self.Fleet.od_matrix[O_idx, D_idx, hour] * self.Fleet.deltaT)
 
             if energy_deltaCs > self.C:
@@ -387,8 +387,8 @@ class PAMoDFleet(metaclass=MetaPAMoDFleet):
             for idx, x in enumerate(itertools.product(self.locations, self.locations, np.arange(self.startT, self.endT))):
                 o_idx = self.locations.index(x[0])
                 d_idx = self.locations.index(x[1])
-                t_idx = np.arange(self.startT, self.endT).tolist().index(x[2])
-                status = PAMoDVehicle.add_road_edges(x[0], x[1], x[2], self.UMax_road[o_idx, d_idx, t_idx], PAMoDVehicle.Vehicle)
+                hour = int(np.floor((x[2] * self.deltaT) % 24))
+                status = PAMoDVehicle.add_road_edges(x[0], x[1], x[2], self.UMax_road[o_idx, d_idx, hour] * self.deltaT, PAMoDVehicle.Vehicle)
                 if status:
                     self.road_arcs.add((x[0], x[1]))
             print(f"Excluded trips due to insufficient maximum range = {PAMoDVehicle.num_dropped_trips}, included trips = {PAMoDVehicle.num_incl_trips}")

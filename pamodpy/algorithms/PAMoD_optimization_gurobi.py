@@ -508,11 +508,11 @@ def obj_elec_energy_carbon_and_constr_UMax_charge_worker(U_list, UMax_charge, bu
                 else:
                     elec_energy_list.append(
                         (U_list[vehicle_idx][E_charge_idx_l_eid_t] @ PAMoDVehicle.energy_conv[E_charge_idx_l_eid_t]) *
-                        experiment.p_elec_energy[t])
+                        experiment.p_elec_energy[int(np.round(t % (24 * experiment.deltaT)))])
                     elec_carbon_list.append(
                         (U_list[vehicle_idx][E_charge_idx_l_eid_t] @ PAMoDVehicle.energy_conv[
                             E_charge_idx_l_eid_t]) *
-                        experiment.carbon_intensity_grid[t]
+                        experiment.carbon_intensity_grid[int(np.round(t % (24 * experiment.deltaT)))]
                     )
             else:
                 l, t, evse_id = l_t_eid
@@ -522,11 +522,11 @@ def obj_elec_energy_carbon_and_constr_UMax_charge_worker(U_list, UMax_charge, bu
                 else:
                     elec_energy_list.append(
                         (U_list[vehicle_idx][E_charge_idx_l_eid_t] @ PAMoDVehicle.energy_conv[E_charge_idx_l_eid_t]) *
-                        experiment.p_elec_energy[t])
+                        experiment.p_elec_energy[int(np.round(t % (24 * experiment.deltaT)))])
                     elec_carbon_list.append(
                         (U_list[vehicle_idx][E_charge_idx_l_eid_t] @ PAMoDVehicle.energy_conv[
                             E_charge_idx_l_eid_t]) *
-                        experiment.carbon_intensity_grid[t]
+                        experiment.carbon_intensity_grid[int(np.round(t % (24 * experiment.deltaT)))]
                     )
                     lep_idx, evse_idx = experiment.get_lep_idx_evse_idx(l, evse_id)
                     UMax_charge_constr_lhs.append(gp.quicksum(U_list[vehicle_idx][E_charge_idx_l_eid_t]))
@@ -576,7 +576,7 @@ def obj_revenue_and_constr_UMax_road_worker(U_list, trip_flow, build, o_d_t, idx
     O, D, t = o_d_t
     O_idx = experiment.locations.index(O)
     D_idx = experiment.locations.index(D)
-    hour = int(np.floor((t * experiment.deltaT) % (24 / experiment.deltaT)))
+    hour = int(np.floor((t * experiment.deltaT) % 24))
     if experiment.drop_trips:
         revenue_term = trip_flow[idx] * experiment.revenue_matrix[O_idx, D_idx, hour]
     else:
@@ -654,7 +654,7 @@ def post_opt_U_rebal_worker(U_value, PAMoDVehicle, o_d_t, experiment):
     O, D, t = o_d_t
     O_idx = experiment.locations.index(O)
     D_idx = experiment.locations.index(D)
-    hour = int(np.floor((t * experiment.deltaT) % (24 / experiment.deltaT)))
+    hour = int(np.floor((t * experiment.deltaT) % 24))
     E_road_idx_r_nonidle_t = PAMoDVehicle.filter_edge_idx('road', O, D, idle=False, t=t)
     if len(E_road_idx_r_nonidle_t) == 0:
         return None
