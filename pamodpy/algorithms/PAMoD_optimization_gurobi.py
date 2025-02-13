@@ -446,15 +446,15 @@ def PAMoD_optimization_gurobi(experiment, opt_time_limit, threads):
         'gas_carbon': gas_carbon_final
                                    }
     experiment.results['revenue'] = revenue_final
-    experiment.results['elec_energy'] = np.sum([U_value @ PAMoDVehicle.energy_conv for U_value, PAMoDVehicle in zip(U_value_list, experiment.PAMoDVehicles)])
+    experiment.results['elec_energy'] = np.sum([U_value @ PAMoDVehicle.energy_conv for U_value, PAMoDVehicle in zip(U_value_list, experiment.PAMoDVehicles)]) * U_const
     elec_demand_arr = np.zeros(experiment.T)
     for U_value, PAMoDVehicle in zip(U_value_list, experiment.PAMoDVehicles):
         for t_idx, t in enumerate(range(experiment.startT, experiment.endT)):
             E_charge_idx_t = PAMoDVehicle.filter_edge_idx('charge', t=t)
-            elec_demand_arr[t_idx] += np.sum(np.multiply(U_value[E_charge_idx_t], PAMoDVehicle.power_conv[E_charge_idx_t]))
+            elec_demand_arr[t_idx] += np.sum(np.multiply(U_value[E_charge_idx_t], PAMoDVehicle.power_conv[E_charge_idx_t])) * U_const
     experiment.results['elec_demand'] = np.max(elec_demand_arr)
     experiment.results['dist_total'] = dist.getValue() * U_const
-    experiment.results['dist_rebal'] = np.sum([U_rebal @ PAMoDVehicle.Dist for U_rebal, PAMoDVehicle in zip(U_rebal_list, experiment.PAMoDVehicles)])
+    experiment.results['dist_rebal'] = np.sum([U_rebal @ PAMoDVehicle.Dist for U_rebal, PAMoDVehicle in zip(U_rebal_list, experiment.PAMoDVehicles)]) * U_const
     experiment.results['dist_passenger'] = experiment.results['dist_total'] - experiment.results['dist_rebal']
     experiment.results['carbon_elec'] = elec_carbon.getValue() * U_const if any(Vehicle.powertrain == 'electric' for Vehicle in experiment.Vehicles) else 0
     experiment.results['carbon_gas'] = gas_carbon.getValue() * U_const if any(Vehicle.powertrain != 'electric' for Vehicle in experiment.Vehicles) else 0
