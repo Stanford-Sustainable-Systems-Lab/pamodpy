@@ -32,10 +32,10 @@ distance_matrix2[:, 26, :] += 10
 duration_matrix2[26, :, :] += 25 / 60
 duration_matrix2[:, 26, :] += 25 / 60
 
-distance_matrix2[27, :, :] += 23
-distance_matrix2[:, 27, :] += 23
-duration_matrix2[27, :, :] += 15 / 60
-duration_matrix2[:, 27, :] += 15 / 60
+distance_matrix2[27, :, :] += 15
+distance_matrix2[:, 27, :] += 15
+duration_matrix2[27, :, :] += 23 / 60
+duration_matrix2[:, 27, :] += 23 / 60
 
 energy_matrix2 = distance_matrix2 * kwh_per_mi + duration_matrix2 * 0
 print("20th percentile = {} kWh".format(np.percentile(np.repeat(energy_matrix2[energy_matrix2 > 0].flatten(), np.round(od_matrix[energy_matrix2 > 0].flatten()).astype(int)), 20)))
