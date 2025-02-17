@@ -12,23 +12,22 @@
   "start_hour": 0,
   "deltaC": 0.5,
   "batt_cap_ranges": [
-    [0.114, 1.0]
+    [0.302, 1.0]
   ],
   "charge_throttle": false,
   "EVSEs": [
     "AC 6.6kW",
     "AC 11.5kW",
-    "DC 50kW",
-    "DC 100kW"
+    "DC 50kW"
   ],
   "Vehicles": [
-    "2023 Chevrolet Bolt EV 1LT"
+    "2024 Dacia Spring Electric 65 Expression"
   ],
   "fleet_sizes": [
     154775
   ],
   "compute_power": [
-    0.5
+    1.5
   ],
   "p_travel": 0.0789,
   "p_ownership_excl_deprec": 2530,

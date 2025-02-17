@@ -7,17 +7,16 @@
   "optimize_infra": true,
   "use_baseline_charge_stations": false,
   "drop_trips": false,
-  "deltaT": 0.25,
-  "num_hours": 6,
-  "start_hour": 6,
-  "deltaC": 0.5,
+  "deltaT": 0.5,
+  "num_hours": 24,
+  "start_hour": 3,
+  "deltaC": 1,
   "batt_cap_ranges": [
-    [0.3, 1.0]
+    [0.4, 1.0]
   ],
   "charge_throttle": false,
   "EVSEs": [
     "AC 6.6kW",
-    "AC 11.5kW",
     "DC 50kW"
   ],
   "Vehicles": [
