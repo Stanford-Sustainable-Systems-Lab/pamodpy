@@ -25,8 +25,11 @@ class Vehicle():
         self.price = df.loc[idx]['price'].values[0]             # [$]
         self.energies_filename = df.loc[idx]['energies_filename'].values[0]
 
-        df_charging_curve = pd.read_csv(os.path.join(os.path.dirname(__file__), 'data', 'charging_curve.csv'), index_col='name')
-        self.soc_percent_to_rate = df_charging_curve.loc[self.name, :].to_numpy()
+        if self.powertrain == 'electric':
+            df_charging_curve = pd.read_csv(os.path.join(os.path.dirname(__file__), 'data', 'charging_curve.csv'), index_col='name')
+            self.soc_percent_to_rate = df_charging_curve.loc[self.name, :].to_numpy()
+        else:
+            self.soc_percent_to_rate = None
 
         self.eta_regen = 0.6
         self.eta_discharge = 0.95
