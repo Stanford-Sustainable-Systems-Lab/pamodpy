@@ -6,8 +6,12 @@ name,make,model,year,trim,powertrain,m,Af,Cd,Cr,batt_cap,max_charge_rate_AC,max_
 2024 Tesla Model 3 Long Range RWD,Tesla,Model 3,2024,Long Range RWD,electric,1765,2.41,0.219,NA,79.7,11.5,250,4.568905825,NA,42490,energies_2024_Tesla_Model_3_Long_Range_RWD.npy
 2024 Jaguar I-PACE EV400 R-Dynamic HSE,Jaguar,I-PACE,2024,EV400 R-Dynamic HSE,electric,2170,2.65,0.29,NA,84.7,11,104,2.465758699,NA,72500,energies_2024_Jaguar_I-PACE_EV400_R-Dynamic_HSE.npy
 2024 Hyundai IONIQ 5 SE,Hyundai,IONIQ 5,2024,SE,electric,1930,2.73,0.288,NA,77.4,10.9,250,3.655124660,NA,45850,energies_2024_Hyundai_IONIQ_5_SE.npy
-dacia_20_7kWh,Dacia,Spring,2024,Electric 65 Expression,electric,984,2.13,0.35,NA,20.7,7,34,4.285318567,NA,20457,energies_145Whpkm_25kWh.npy
-dacia_31_5kWh,Dacia,Spring,2024,Electric 65 Expression,electric,984,2.13,0.35,NA,31.5,7,34,4.285318567,NA,20457,energies_145Whpkm_25kWh.npy
+dacia_21_008kWh,Dacia,Spring,2024,Electric 65 Expression,electric,984,2.13,0.35,NA,21.008,7,34,4.285318567,NA,20457,energies_145Whpkm_25kWh.npy
+dacia_22_19kWh,Dacia,Spring,2024,Electric 65 Expression,electric,984,2.13,0.35,NA,22.19,7,34,4.285318567,NA,20457,energies_145Whpkm_25kWh.npy
+dacia_23_511kWh,Dacia,Spring,2024,Electric 65 Expression,electric,984,2.13,0.35,NA,23.511,7,34,4.285318567,NA,20457,energies_145Whpkm_25kWh.npy
+dacia_26_691kWh,Dacia,Spring,2024,Electric 65 Expression,electric,984,2.13,0.35,NA,26.691,7,34,4.285318567,NA,20457,energies_145Whpkm_25kWh.npy
+dacia_28_627kWh,Dacia,Spring,2024,Electric 65 Expression,electric,984,2.13,0.35,NA,28.627,7,34,4.285318567,NA,20457,energies_145Whpkm_25kWh.npy
+dacia_30_865kWh,Dacia,Spring,2024,Electric 65 Expression,electric,984,2.13,0.35,NA,30.865,7,34,4.285318567,NA,20457,energies_145Whpkm_25kWh.npy
 dacia_115Whpkm,Dacia,Spring,2024,Electric 65 Expression,electric,984,2.13,0.35,NA,25,7,34,5.403227759,NA,20457,energies_115Whpkm_25kWh.npy
 dacia_125Whpkm,Dacia,Spring,2024,Electric 65 Expression,electric,984,2.13,0.35,NA,25,7,34,4.970969538,NA,20457,energies_125Whpkm_25kWh.npy
 dacia_135Whpkm,Dacia,Spring,2024,Electric 65 Expression,electric,984,2.13,0.35,NA,25,7,34,4.602749572,NA,20457,energies_135Whpkm_25kWh.npy
