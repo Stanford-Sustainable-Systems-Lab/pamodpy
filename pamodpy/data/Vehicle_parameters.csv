@@ -21,3 +21,4 @@ dacia_175Whpkm,Dacia,Spring,2024,Electric 65 Expression,electric,984,2.13,0.35,N
 dacia_185Whpkm,Dacia,Spring,2024,Electric 65 Expression,electric,984,2.13,0.35,NA,25,7,34,3.358763201,NA,20457,energies_185Whpkm_25kWh.npy
 hyundai_electric_1_000,Hyundai,IONIQ Electric,2021,SE,electric,1529.06,2.41,0.24,0.01,38.3,7.2,50,4.502689799,NA,25350,energies_2021_Hyundai_IONIQ_Electric_SE.npy
 hyundai_electric_1_156,Hyundai,IONIQ Electric,2021,SE,electric,1529.06,2.41,0.24,0.01,38.3,7.2,50,4.502689799,NA,29297.5,energies_2021_Hyundai_IONIQ_Electric_SE.npy
+hyundai_electric_1_234,Hyundai,IONIQ Electric,2021,SE,electric,1529.06,2.41,0.24,0.01,38.3,7.2,50,4.502689799,NA,31271.25,energies_2021_Hyundai_IONIQ_Electric_SE.npy
