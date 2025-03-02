@@ -365,7 +365,8 @@ def charging_power(experiment, vehicle_idx, top_lim=None):
     for rate in np.unique([edge[2] for edge in experiment.PAMoDVehicles[vehicle_idx].G.edges(data='power_grid') if edge[2] is not None]):
         data_rate = []
         for l in experiment.locations_excl_passthrough:
-            E_charge_idx_l_rate = experiment.PAMoDVehicles[vehicle_idx].filter_edge_idx('charge', l, l, power_grid=(rate - 1 / experiment.deltaT * experiment.deltaC, rate))
+            E_charge_idx_l_rate = experiment.PAMoDVehicles[vehicle_idx].filter_edge_idx('charge', l, l, power_grid=(
+                rate - 0.5 * experiment.deltaC / experiment.deltaT, rate + 0.5 * experiment.deltaC / experiment.deltaT))
             if E_charge_idx_l_rate is not None:
                 data_rate.append(np.sum(experiment.U_trip_charge_idle_list[vehicle_idx][E_charge_idx_l_rate]))
             else:
@@ -391,7 +392,8 @@ def charging_power_time(time_vec, experiment, vehicle_idx, top_lim=None):
     for rate in np.unique([edge[2] for edge in experiment.PAMoDVehicles[vehicle_idx].G.edges(data='power_grid') if edge[2] is not None]):
         rate_arr = np.zeros(experiment.T)
         for t_idx, t in enumerate(range(experiment.startT, experiment.endT)):
-            E_charge_idx_t_rate = experiment.PAMoDVehicles[vehicle_idx].filter_edge_idx('charge', t=t, power_grid=(rate - 1 / experiment.deltaT * experiment.deltaC, rate))
+            E_charge_idx_t_rate = experiment.PAMoDVehicles[vehicle_idx].filter_edge_idx('charge', t=t, power_grid=(
+                rate - 0.5 * experiment.deltaC / experiment.deltaT, rate + 0.5 * experiment.deltaC / experiment.deltaT))
             if E_charge_idx_t_rate is not None:
                 rate_arr[t_idx] = np.sum(experiment.U_trip_charge_idle_list[vehicle_idx][E_charge_idx_t_rate])
         if rate_arr.sum() > 10:
