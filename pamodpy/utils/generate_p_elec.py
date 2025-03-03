@@ -16,8 +16,9 @@ def generate_p_elec(rate_name, time_init, dt, num_days, start_hour):
 
     p_elec_energy_total = np.zeros(int(np.round(total_days * 24 / dt)))
     p_elec_demand_dict = {}
+    p_elec_daily = 0
 
-    #BEV-2-S
+    # BEV-2-S from Jan 1, 2025 - Mar 1, 2025 https://www.pge.com/tariffs/assets/pdf/adviceletter/ELEC_7469-E.pdf
     if rate_name == "BEV-2-S":
 
         energy_rates = {
@@ -61,6 +62,86 @@ def generate_p_elec(rate_name, time_init, dt, num_days, start_hour):
                     p_elec_demand_day_interval
 
             current_day += timedelta(days=1)
+
+    # B-20 Secondary Voltage from Jan 1, 2025 - Mar 1, 2025 https://www.pge.com/tariffs/assets/pdf/adviceletter/ELEC_7469-E.pdf
+    elif rate_name == "B-20 Secondary Voltage":
+        summer_months = (6, 7, 8, 9)  # Jun 1 to Sep 30
+        winter_months = (10, 11, 12, 1, 2, 3, 4, 5)  # Oct 1 to May 31
+
+        p_elec_daily = 114.91423
+
+        energy_rates = {
+            "summer": {
+                "peak": 0.20547,
+                "part_peak": 0.15735,
+                "off_peak": 0.11935
+            },
+            "winter": {
+                "peak": 0.17680,
+                "off_peak": 0.11904,
+                "super_off_peak": 0.04166
+            },
+        }
+
+        demand_rates = {
+            "summer": {
+                "peak": 50.00,
+                "part_peak": 10.76,
+                "any_time": 42.81
+            },
+            "winter": {
+                "peak": 3.22,
+                "any_time": 42.81
+            }
+        }
+
+        hours = {
+            "summer": {
+                "peak": [(16, 21)],
+                "part_peak": [(14, 16), (21, 23)],
+                "off_peak": [(0, 14), (23, 24)],
+                "any_time": [(0, 24)]
+            },
+            "winter": {
+                "peak": [(16, 21)],
+                "off_peak": [(0, 9), (14, 16), (21, 24)],
+                "super_off_peak": [(9, 14)],
+                "any_time": [(0, 24)]
+            }
+        }
+
+        current_day = day_init
+        for day in range(total_days):
+            if current_day.month in summer_months:
+                period = "summer"
+            else:
+                period = "winter"
+
+            for interval_name in demand_rates[period].keys():
+                if interval_name not in p_elec_demand_dict.keys():
+                    p_elec_demand_dict[interval_name] = np.zeros(int(np.round(total_days * 24 / dt)))
+            p_elec_energy_day = np.zeros(int(np.round(24 / dt)))
+
+            for (interval_name, energy_rate) in energy_rates[period].items():
+                if interval_name in hours[period].keys():
+                    intervals = hours[period][interval_name]
+                    for interval in intervals:
+                        p_elec_energy_day[int(np.round(interval[0] / dt)): int(np.round(interval[1] / dt))] = \
+                            energy_rates[period][interval_name]
+            p_elec_energy_total[int(np.round(day * 24 / dt)):int(np.round((day + 1) * 24 / dt))] = p_elec_energy_day
+
+            for (interval_name, demand_rate) in demand_rates[period].items():
+                p_elec_demand_day_interval = np.zeros(int(np.round(24 / dt)))
+                if interval_name in hours[period].keys():
+                    intervals = hours[period][interval_name]
+                    for interval in intervals:
+                        p_elec_demand_day_interval[int(np.round(interval[0] / dt)): int(np.round(interval[1] / dt))] = \
+                            demand_rate
+                p_elec_demand_dict[interval_name][int(np.round(day * 24 / dt)):int(np.round((day + 1) * 24 / dt))] = \
+                    p_elec_demand_day_interval
+
+            current_day += timedelta(days=1)
+
 
     elif rate_name == "E-19 Secondary Voltage":
         summer_months = (5, 6, 7, 8, 9, 10)     # May 1 to Oct 31
