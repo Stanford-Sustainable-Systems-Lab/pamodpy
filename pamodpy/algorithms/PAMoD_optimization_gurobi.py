@@ -519,11 +519,11 @@ def obj_elec_energy_carbon_and_constr_UMax_charge_worker(U_list, UMax_charge, bu
                 else:
                     elec_energy_list.append(
                         (U_list[vehicle_idx][E_charge_idx_l_eid_t] @ PAMoDVehicle.energy_conv[E_charge_idx_l_eid_t]) *
-                        experiment.p_elec_energy[int(np.round(t % (24 * experiment.deltaT)))])
+                        experiment.p_elec_energy[int(np.floor((t * experiment.deltaT) % 24))])
                     elec_carbon_list.append(
                         (U_list[vehicle_idx][E_charge_idx_l_eid_t] @ PAMoDVehicle.energy_conv[
                             E_charge_idx_l_eid_t]) *
-                        experiment.carbon_intensity_grid[int(np.round(t % (24 * experiment.deltaT)))]
+                        experiment.carbon_intensity_grid[int(np.floor((t * experiment.deltaT) % 24))]
                     )
             else:
                 l, t, evse_id = l_t_eid
@@ -533,11 +533,11 @@ def obj_elec_energy_carbon_and_constr_UMax_charge_worker(U_list, UMax_charge, bu
                 else:
                     elec_energy_list.append(
                         (U_list[vehicle_idx][E_charge_idx_l_eid_t] @ PAMoDVehicle.energy_conv[E_charge_idx_l_eid_t]) *
-                        experiment.p_elec_energy[int(np.round(t % (24 * experiment.deltaT)))])
+                        experiment.p_elec_energy[int(np.floor((t * experiment.deltaT) % 24))])
                     elec_carbon_list.append(
                         (U_list[vehicle_idx][E_charge_idx_l_eid_t] @ PAMoDVehicle.energy_conv[
                             E_charge_idx_l_eid_t]) *
-                        experiment.carbon_intensity_grid[int(np.round(t % (24 * experiment.deltaT)))]
+                        experiment.carbon_intensity_grid[int(np.floor((t * experiment.deltaT) % 24))]
                     )
                     lep_idx, evse_idx = experiment.get_lep_idx_evse_idx(l, evse_id)
                     UMax_charge_constr_lhs.append(gp.quicksum(U_list[vehicle_idx][E_charge_idx_l_eid_t]))

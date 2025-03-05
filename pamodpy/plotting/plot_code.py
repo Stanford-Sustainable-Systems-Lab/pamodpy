@@ -35,6 +35,7 @@ def num_veh_each_l(time_vec, startT, endT, experiment, vehicle_idx):
     plt.xlabel("Time [hr]", fontsize=24)
     # plt.show()
     fig.savefig(os.path.join(experiment.results_path, experiment.Vehicles[vehicle_idx].name, 'num_veh_each_l.png'), dpi=fig.dpi)
+    plt.close(fig)
 
 def num_veh_each_c(time_vec, startT, endT, experiment, vehicle_idx):
     if experiment.Vehicles[vehicle_idx].powertrain != 'electric':
@@ -59,6 +60,7 @@ def num_veh_each_c(time_vec, startT, endT, experiment, vehicle_idx):
     plt.legend()
     # plt.show()
     fig.savefig(os.path.join(experiment.results_path, experiment.Vehicles[vehicle_idx].name, 'num_veh_each_c.png'), dpi=fig.dpi)
+    plt.close(fig)
 
 def avg_soc(time_vec, startT, endT, experiment, vehicle_idx):
     if experiment.Vehicles[vehicle_idx].powertrain != 'electric':
@@ -84,6 +86,7 @@ def avg_soc(time_vec, startT, endT, experiment, vehicle_idx):
     plt.xlabel("Time [hr]", fontsize=24)
     # plt.show()
     fig.savefig(os.path.join(experiment.results_path, experiment.Vehicles[vehicle_idx].name, 'avg_soc.png'), dpi=fig.dpi)
+    plt.close(fig)
 
 def charging_load_each_l(time_vec, startT, endT, experiment, vehicle_idx):
     if experiment.Vehicles[vehicle_idx].powertrain != 'electric':
@@ -112,6 +115,7 @@ def charging_load_each_l(time_vec, startT, endT, experiment, vehicle_idx):
     plt.xlabel("Time [hr]", fontsize=24)
     # plt.show()
     fig.savefig(os.path.join(experiment.results_path, experiment.Vehicles[vehicle_idx].name, 'charging_load_each_l.png'), dpi=fig.dpi)
+    plt.close(fig)
 
 def charging_load_total(time_vec, startT, endT, experiment, vehicle_idx, top_lim=None):
     if experiment.Vehicles[vehicle_idx].powertrain != 'electric':
@@ -136,6 +140,7 @@ def charging_load_total(time_vec, startT, endT, experiment, vehicle_idx, top_lim
     ax.ticklabel_format(useOffset=False)
     # plt.show()
     fig.savefig(os.path.join(experiment.results_path, experiment.Vehicles[vehicle_idx].name, 'charging_load_total.png'), dpi=fig.dpi)
+    plt.close(fig)
 
 def vehicle_status(time_vec, startT, endT, experiment, vehicle_idx, top_lim=None):
     def charging_arr(t_idx, t, E_charge_idx_t):
@@ -202,7 +207,9 @@ def vehicle_status(time_vec, startT, endT, experiment, vehicle_idx, top_lim=None
     plt.ylabel("Number of vehicles [-]", fontsize=20)
     plt.xlabel("Time of day [h]", fontsize=20)
     formatter = FuncFormatter(lambda h, x: time.strftime('%H:%M', time.gmtime(h * 3600)))
-    ax.xaxis.set_ticks(np.arange(0, 24, 4))
+    ax.xaxis.set_ticks([t % 24 for t in np.arange(int(np.round(experiment.startT * experiment.deltaT)),
+                                                  int(np.round(experiment.endT * experiment.deltaT)),
+                                                  int(np.round(1 / experiment.deltaT)))])
     ax.xaxis.set_major_formatter(formatter)
     ax.ticklabel_format(axis='y', style='sci')
     # plt.title("Fleet Distribution by Vehicle Status")
@@ -211,6 +218,7 @@ def vehicle_status(time_vec, startT, endT, experiment, vehicle_idx, top_lim=None
     plt.legend(fontsize=20)
     # plt.show()
     fig.savefig(os.path.join(experiment.results_path, experiment.Vehicles[vehicle_idx].name, 'vehicle_status.png'), dpi=200)
+    plt.close(fig)
 
 def charging_arr_worker(idx, experiment, vehicle_idx):
     dur_deltaTs = experiment.round_time(experiment.PAMoDVehicles[vehicle_idx].Dur[idx], min_val=1)
@@ -245,6 +253,7 @@ def travel_demand(time_vec, experiment):
     plt.xlabel("Time [hr]", fontsize=24)
     # plt.show()
     fig.savefig(os.path.join(experiment.results_path, 'travel_demand.png'), dpi=fig.dpi)
+    plt.close(fig)
 
 def location_timeseries(l, time_vec, startT, endT, experiment, vehicle_idx):
     fig, ax1 = plt.subplots()
@@ -310,12 +319,14 @@ def location_timeseries(l, time_vec, startT, endT, experiment, vehicle_idx):
 
     # plt.show()
     fig.savefig(os.path.join(experiment.results_path, experiment.Vehicles[vehicle_idx].name, 'location_{}_timeseries.png'.format(l)), dpi=fig.dpi)
+    plt.close(fig)
 
     # fig = plt.figure(dpi=200, figsize=(12, 8))
     # plt.grid()
     # plt.plot(time_vec, charging_150)
     # plt.show()
     # fig.savefig(os.path.join(experiment.results_path, 'location_{}_charging150.png'.format(l)), dpi=fig.dpi)
+    # plt.close(fig)
 
 def infra(experiment, top_lim=None):
     fig = plt.figure()
@@ -333,6 +344,7 @@ def infra(experiment, top_lim=None):
         plt.ylim(top=top_lim)
     # plt.show()
     fig.savefig(os.path.join(experiment.results_path, 'infra.png'), dpi=200)
+    plt.close(fig)
 
 def infra_power(experiment, top_lim=None):
     fig = plt.figure()
@@ -350,6 +362,7 @@ def infra_power(experiment, top_lim=None):
         plt.ylim(top=top_lim)
     # plt.show()
     fig.savefig(os.path.join(experiment.results_path, 'infra_power.png'), dpi=200)
+    plt.close(fig)
 
     total_installed_capacity = 0.0
     for evse_idx, evse in enumerate(experiment.EVSEs):
@@ -384,6 +397,7 @@ def charging_power(experiment, vehicle_idx, top_lim=None):
         plt.ylim(top=top_lim)
     # plt.show()
     fig.savefig(os.path.join(experiment.results_path, experiment.Vehicles[vehicle_idx].name, 'charging_power.png'), dpi=200)
+    plt.close(fig)
 
 def charging_power_time(time_vec, experiment, vehicle_idx, top_lim=None):
     if experiment.Vehicles[vehicle_idx].powertrain != 'electric':
@@ -404,6 +418,7 @@ def charging_power_time(time_vec, experiment, vehicle_idx, top_lim=None):
         plt.ylim(top=top_lim)
     # plt.show()
     fig.savefig(os.path.join(experiment.results_path, experiment.Vehicles[vehicle_idx].name, 'charging_power_time.png'), dpi=200)
+    plt.close(fig)
 
 def heatmaps(startT, endT, experiment, power_matrix_list, vehicle_idx):
     if experiment.Vehicles[vehicle_idx].powertrain != 'electric':
@@ -543,3 +558,4 @@ def heatmaps(startT, endT, experiment, power_matrix_list, vehicle_idx):
         plt.tight_layout()
         # plt.show()
         fig.savefig(os.path.join(experiment.results_path, filename), dpi=200)
+        plt.close(fig)
