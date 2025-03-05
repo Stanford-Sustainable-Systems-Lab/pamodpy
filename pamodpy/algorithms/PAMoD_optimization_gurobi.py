@@ -513,31 +513,33 @@ def obj_elec_energy_carbon_and_constr_UMax_charge_worker(U_list, UMax_charge, bu
             n_elec_vehicles += 1
             if experiment.charge_throttle:
                 l, t = l_t_eid
+                t_idx = t - experiment.startT
                 E_charge_idx_l_eid_t = PAMoDVehicle.filter_edge_idx('charge', l, l, t=t)
                 if len(E_charge_idx_l_eid_t) == 0:
                     invalid += 1
                 else:
                     elec_energy_list.append(
                         (U_list[vehicle_idx][E_charge_idx_l_eid_t] @ PAMoDVehicle.energy_conv[E_charge_idx_l_eid_t]) *
-                        experiment.p_elec_energy[int(np.floor((t * experiment.deltaT) % 24))])
+                        experiment.p_elec_energy[t_idx])
                     elec_carbon_list.append(
                         (U_list[vehicle_idx][E_charge_idx_l_eid_t] @ PAMoDVehicle.energy_conv[
                             E_charge_idx_l_eid_t]) *
-                        experiment.carbon_intensity_grid[int(np.floor((t * experiment.deltaT) % 24))]
+                        experiment.carbon_intensity_grid[t_idx]
                     )
             else:
                 l, t, evse_id = l_t_eid
+                t_idx = t - experiment.startT
                 E_charge_idx_l_eid_t = PAMoDVehicle.filter_edge_idx('charge', l, l, evse_id=evse_id, t=t)
                 if len(E_charge_idx_l_eid_t) == 0:
                     invalid += 1
                 else:
                     elec_energy_list.append(
                         (U_list[vehicle_idx][E_charge_idx_l_eid_t] @ PAMoDVehicle.energy_conv[E_charge_idx_l_eid_t]) *
-                        experiment.p_elec_energy[int(np.floor((t * experiment.deltaT) % 24))])
+                        experiment.p_elec_energy[t_idx])
                     elec_carbon_list.append(
                         (U_list[vehicle_idx][E_charge_idx_l_eid_t] @ PAMoDVehicle.energy_conv[
                             E_charge_idx_l_eid_t]) *
-                        experiment.carbon_intensity_grid[int(np.floor((t * experiment.deltaT) % 24))]
+                        experiment.carbon_intensity_grid[t_idx]
                     )
                     lep_idx, evse_idx = experiment.get_lep_idx_evse_idx(l, evse_id)
                     UMax_charge_constr_lhs.append(gp.quicksum(U_list[vehicle_idx][E_charge_idx_l_eid_t]))
