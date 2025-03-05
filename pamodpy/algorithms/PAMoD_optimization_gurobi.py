@@ -87,11 +87,11 @@ def PAMoD_optimization_gurobi(experiment, opt_time_limit, threads):
         elec_demand = gp.quicksum(elec_demand)
 
         if build:
-            lidx_l_t = ((l_idx, l, t) for l_idx, l in enumerate(experiment.charge_stations.keys())
-                        for t in p_elec_demand_interval_nonzeros)
+            lidx_l_tidx = ((l_idx, l, t_idx) for l_idx, l in enumerate(experiment.charge_stations.keys())
+                        for t_idx in p_elec_demand_interval_nonzeros)
             with pmp.ThreadingPool() as p:
                 outputs = p.map(obj_elec_demand_worker,
-                                repeat(U_list), repeat(PMax), repeat(p_elec_demand_interval_idx), lidx_l_t,
+                                repeat(U_list), repeat(PMax), repeat(p_elec_demand_interval_idx), lidx_l_tidx,
                                 repeat(experiment), count())
             return elec_demand, outputs
         else:
@@ -633,11 +633,12 @@ def obj_revenue_and_constr_UMax_road_worker(U_list, trip_flow, build, o_d_t, idx
         return revenue_term
 
 
-def obj_elec_demand_worker(U_list, PMax, p_elec_demand_interval_idx, lidx_l_t, experiment, count):
+def obj_elec_demand_worker(U_list, PMax, p_elec_demand_interval_idx, lidx_l_tidx, experiment, count):
     """
     Construct the objective function cost term for electricity demand charges for the given location and time.
     """
-    l_idx, l, t = lidx_l_t
+    l_idx, l, t_idx = lidx_l_tidx
+    t = t_idx + experiment.startT
 
     obj_elec_demand_lhs = []
     invalid = 0
