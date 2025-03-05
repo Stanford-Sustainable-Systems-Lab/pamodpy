@@ -209,7 +209,7 @@ def vehicle_status(time_vec, startT, endT, experiment, vehicle_idx, top_lim=None
     formatter = FuncFormatter(lambda h, x: time.strftime('%H:%M', time.gmtime(h * 3600)))
     ax.xaxis.set_ticks([t % 24 for t in np.arange(int(np.round(experiment.startT * experiment.deltaT)),
                                                   int(np.round(experiment.endT * experiment.deltaT)),
-                                                  int(np.round(1 / experiment.deltaT)))])
+                                                  4)])
     ax.xaxis.set_major_formatter(formatter)
     ax.ticklabel_format(axis='y', style='sci')
     # plt.title("Fleet Distribution by Vehicle Status")
