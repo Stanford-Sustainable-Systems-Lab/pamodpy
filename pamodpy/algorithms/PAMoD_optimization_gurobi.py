@@ -299,11 +299,14 @@ def PAMoD_optimization_gurobi(experiment, opt_time_limit, threads):
 
     # Set objective
     fleet_cost = 0
+    wage_cost = 0
     for vehicle_idx in range(len(experiment.Vehicles)):
-        fleet_cost += fleet_sizes[vehicle_idx] * np.round(((experiment.Vehicles[vehicle_idx].price + experiment.p_automation) * 0.2 + experiment.p_ownership_excl_deprec) * (experiment.T * experiment.deltaT / HOURS_PER_YEAR), decimals=2) * (
+        fleet_cost += fleet_sizes[vehicle_idx] * np.round(((experiment.Vehicles[vehicle_idx].price + experiment.p_automation[vehicle_idx]) * 0.2 + experiment.p_ownership_excl_deprec) * (experiment.T * experiment.deltaT / HOURS_PER_YEAR), decimals=2) * (
                 fleet_size_const / U_const)
+        wage_cost += gp.quicksum([U_list[vehicle_idx] @ (PAMoDVehicle.Dur * (
+                    PAMoDVehicle.G_edges_road_mask & (~PAMoDVehicle.G_edges_road_idle_mask))) * experiment.p_wages[vehicle_idx] for vehicle_idx, PAMoDVehicle in enumerate(experiment.PAMoDVehicles)])
 
-    obj = elec_energy + elec_demand + elec_carbon * experiment.p_carbon + dist_elec * experiment.p_travel + dist_gas * experiment.p_travel_ICE + revenue + fleet_cost + infra + gas + gas_carbon * experiment.p_carbon
+    obj = elec_energy + elec_demand + elec_carbon * experiment.p_carbon + dist_elec * experiment.p_travel + dist_gas * experiment.p_travel_ICE + revenue + fleet_cost + infra + gas + gas_carbon * experiment.p_carbon + wage_cost
     m.setObjective(obj, GRB.MINIMIZE)
 
     # Clean-up
@@ -434,6 +437,10 @@ def PAMoD_optimization_gurobi(experiment, opt_time_limit, threads):
         elec_energy_final = 0
         elec_demand_final = 0
         elec_carbon_final = 0
+    if any(p_wage != 0 for p_wage in experiment.p_wages):
+        wage_cost_final = wage_cost.getValue() * U_const
+    else:
+        wage_cost_final = 0
 
     # Store results in experiment.results
     experiment.results['fleet_sizes'] = experiment.fleet_sizes
@@ -446,7 +453,8 @@ def PAMoD_optimization_gurobi(experiment, opt_time_limit, threads):
         'fleet': np.sum(fleet_cost.getValue()) * U_const,
         'infra': infra_value,
         'gas': gas_final,
-        'gas_carbon': gas_carbon_final
+        'gas_carbon': gas_carbon_final,
+        'wage': wage_cost_final
                                    }
     experiment.results['revenue'] = revenue_final
     experiment.results['elec_energy'] = np.sum([U_value @ PAMoDVehicle.energy_conv for U_value, PAMoDVehicle in zip(U_value_list, experiment.PAMoDVehicles)]) * U_const
@@ -492,7 +500,8 @@ def PAMoD_optimization_gurobi(experiment, opt_time_limit, threads):
             experiment.results['costs']['elec_carbon'],
             experiment.results['costs']['infra'],
             experiment.results['costs']['gas'],
-            experiment.results['costs']['gas_carbon']
+            experiment.results['costs']['gas_carbon'],
+            experiment.results['costs']['wage'],
             ]  # TODO this won't work for load_opt == True
 
 

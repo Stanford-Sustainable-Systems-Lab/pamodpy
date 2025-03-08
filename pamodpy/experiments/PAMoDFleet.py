@@ -453,17 +453,18 @@ class PAMoDFleet(metaclass=MetaPAMoDFleet):
 
     def run(self, opt_time_limit, threads):
         if self.config['algorithm'] == 'PAMoD_optimization_gurobi':
-            [X, U, U_trip_charge_idle, U_rebal, elec_energy, elec_demand, dist, revenue, fleet_cost, elec_carbon, infra, gas, gas_carbon] = PAMoD_optimization_gurobi(self, opt_time_limit, threads)
+            [X, U, U_trip_charge_idle, U_rebal, elec_energy, elec_demand, dist, revenue, fleet_cost, elec_carbon, infra, gas, gas_carbon, wages] = PAMoD_optimization_gurobi(self, opt_time_limit, threads)
         elif self.config['algorithm'] == 'PAMoD_optimization_pyomo':
             [X, U, U_trip_charge_idle, U_rebal, elec_energy, elec_demand, dist, revenue, fleet_cost, elec_carbon, infra, gas,
              gas_carbon] = PAMoD_optimization_pyomo(self)
+            wages = None
         else:
             raise ValueError('"{}" is not a valid algorithm for the experiment_type {}'.format(self.config['algorithm'], self.config['experiment_type']))
         self.X_list = X
         self.U_list = U
         self.U_trip_charge_idle_list = U_trip_charge_idle
         self.U_rebal_list = U_rebal
-        self.costs_list = np.array([elec_energy, elec_demand, dist, revenue, fleet_cost, elec_carbon, infra, gas, gas_carbon], dtype=object)
+        self.costs_list = np.array([elec_energy, elec_demand, dist, revenue, fleet_cost, elec_carbon, infra, gas, gas_carbon, wages], dtype=object)
         self.power_matrix_list = [np.zeros((len(self.locations_excl_passthrough), self.T - 1)) for _ in range(len(self.Vehicles))]
         for vehicle_idx, PAMoDVehicle in enumerate(self.PAMoDVehicles):
             for l_idx, l in enumerate(self.locations_excl_passthrough):
@@ -471,8 +472,8 @@ class PAMoDFleet(metaclass=MetaPAMoDFleet):
                     E_charge_idx_l_t = PAMoDVehicle.filter_edge_idx('charge', l, l, t=t)
                     self.power_matrix_list[vehicle_idx][l_idx, t_idx] = np.sum(
                         np.multiply(self.U_list[vehicle_idx][E_charge_idx_l_t], PAMoDVehicle.power_conv[E_charge_idx_l_t]))
-        self.logger.info('total={}, elec_energy={}, elec_demand={}, dist={}, revenue={}, fleet_cost={}, elec_carbon={}, infra={}, gas={}, gas_carbon={}'.format(np.sum(self.costs_list),
-                                                                                     elec_energy, elec_demand, dist, revenue, fleet_cost, elec_carbon, infra, gas, gas_carbon))
+        self.logger.info('total={}, elec_energy={}, elec_demand={}, dist={}, revenue={}, fleet_cost={}, elec_carbon={}, infra={}, gas={}, gas_carbon={}, wages={}'.format(np.sum(self.costs_list),
+                                                                                     elec_energy, elec_demand, dist, revenue, fleet_cost, elec_carbon, infra, gas, gas_carbon, wages))
     def save(self):
         np.save(os.path.join(self.results_path, 'power_matrix_list.npy'), self.power_matrix_list)
         np.save(os.path.join(self.results_path, 'X_list.npy'), self.X_list)

@@ -24,3 +24,4 @@ hyundai_electric_1_000,Hyundai,IONIQ Electric,2021,SE,electric,1529.06,2.41,0.24
 hyundai_electric_1_078,Hyundai,IONIQ Electric,2021,SE,electric,1529.06,2.41,0.24,0.01,38.3,7.2,50,4.502689799,NA,27323.75,energies_2021_Hyundai_IONIQ_Electric_SE.npy
 hyundai_electric_1_156,Hyundai,IONIQ Electric,2021,SE,electric,1529.06,2.41,0.24,0.01,38.3,7.2,50,4.502689799,NA,29297.5,energies_2021_Hyundai_IONIQ_Electric_SE.npy
 hyundai_electric_1_234,Hyundai,IONIQ Electric,2021,SE,electric,1529.06,2.41,0.24,0.01,38.3,7.2,50,4.502689799,NA,31271.25,energies_2021_Hyundai_IONIQ_Electric_SE.npy
+2024 Dacia Spring Electric 65 Expression Driver,Dacia,Spring,2024,Electric 65 Expression,electric,984,2.13,0.35,NA,25,7,34,4.602749572,NA,20457,energies_2024_Dacia_Spring_Electric_65_Expression.npy

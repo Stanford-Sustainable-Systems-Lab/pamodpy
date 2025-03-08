@@ -92,6 +92,7 @@ class Experiment(ABC):
         self.p_gas = config['p_gas']  #4.127 # [$ / gal] https://www.eia.gov/dnav/pet/pet_pri_gnd_dcus_y05sf_a.htm
         self.p_carbon = config['p_carbon']  #0 # [$ / ton CO2]
         self.p_automation = config['p_automation']  # [$]
+        self.p_wages = config['p_wages'] if 'p_wages' in config else None  # [$ / hr]
 
         # Generated variables
         self.p_elec_energy, self.p_elec_demand = generate_p_elec(config['p_elec'], 1686812400, self.deltaT, int(np.ceil(config['num_hours'] / 24)), config['start_hour'])
@@ -271,7 +272,7 @@ class SF_25(Experiment):
         if self.use_baseline_charge_stations:
             with open(os.path.join(self.data_path, 'SF_charging_stations_to_25_cluster.p'), 'rb') as f:
                 self.charge_stations = pickle.load(f)
-            desired_total_installed_capacity = 358257.08870379557#374898.8370658811 #629912.7705068741
+            desired_total_installed_capacity = 31460.5384644648 #358257.08870379557#374898.8370658811 #629912.7705068741
             current_total_installed_capacity = 0.0
             for l in self.locations_excl_passthrough:
                 for station in self.charge_stations[l]:

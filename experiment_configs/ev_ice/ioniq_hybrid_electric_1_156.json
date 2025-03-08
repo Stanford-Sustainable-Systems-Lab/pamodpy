@@ -39,5 +39,6 @@
   "p_elec": "BEV-2-S",
   "p_gas": 4.652,
   "p_carbon": 0,
-  "p_automation": 10000
+  "p_automation": [10000, 10000],
+  "p_wages": [0, 0]
 }
