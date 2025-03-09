@@ -83,6 +83,8 @@ class Experiment(ABC):
         self.congestion_constr_charge = True  # Whether to have congestion threshold limits at charging stations
         self.drop_trips = config['drop_trips']
         self.use_baseline_charge_stations = config['use_baseline_charge_stations']
+        self.baseline_charge_stations_additional_scaling = config['baseline_charge_stations_additional_scaling']\
+            if 'baseline_charge_stations_additional_scaling' in config else 1.0
 
         # Costs and prices
         self.revenue_matrix = None  # (L, L, 24) Numpy array of OD matrix with trip revenue in [$]
@@ -273,6 +275,7 @@ class SF_25(Experiment):
             with open(os.path.join(self.data_path, 'SF_charging_stations_to_25_cluster.p'), 'rb') as f:
                 self.charge_stations = pickle.load(f)
             desired_total_installed_capacity = 40402.39561577566 #51237.671047372176 #358257.08870379557#374898.8370658811 #629912.7705068741
+            desired_total_installed_capacity *= self.baseline_charge_stations_additional_scaling
             current_total_installed_capacity = 0.0
             for l in self.locations_excl_passthrough:
                 for station in self.charge_stations[l]:
