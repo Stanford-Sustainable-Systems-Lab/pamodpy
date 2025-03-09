@@ -194,7 +194,7 @@ class SF_190(Experiment):
             self.od_matrix[x[0], x[1], :] = 0
         self.top_idx = np.load(os.path.join(self.data_path,
                                             'top_idx.npy'))  # (2, 1663) Numpy array of indices (not TAZ) of non-zero roads in matched_od_matrix_top
-        self.revenue_matrix = self.dist_matrix * 0.91 + self.time_matrix / 60 * 0.39 + 2.20 + 2.70  # (193, 193, 24) Numpy array of OD matrix with trip revenue in [$]
+        self.revenue_matrix = self.dist_matrix * 0.93 + self.time_matrix / 60 * 0.40 + 2.24 + 3.60  # (193, 193, 24) Numpy array of OD matrix with trip revenue in [$]
 
 class SF_5(Experiment):
     def __init__(self, config):
@@ -231,7 +231,7 @@ class SF_5(Experiment):
         1, 1, self.od_matrix.shape[2]))  # (8, 8, 24) Numpy array of maximum road capacity [# vehicles]
         for x in itertools.product([self.locations.index(6), self.locations.index(7), self.locations.index(8)], [self.locations.index(6), self.locations.index(7), self.locations.index(8)]):
             self.od_matrix[x[0], x[1], :] = 0
-        self.revenue_matrix = self.dist_matrix * 0.91 + self.time_matrix / 60 * 0.39 + 2.20 + 2.70  # (8, 8, 24) Numpy array of OD matrix with trip revenue in [$]
+        self.revenue_matrix = self.dist_matrix * 0.93 + self.time_matrix / 60 * 0.40 + 2.24 + 3.60  # (8, 8, 24) Numpy array of OD matrix with trip revenue in [$]
 
 class SF_25(Experiment):
     def __init__(self, config):
@@ -267,12 +267,12 @@ class SF_25(Experiment):
         1, 1, self.od_matrix.shape[2]))  # (28, 28, 24) Numpy array of maximum road capacity [# vehicles]
         for x in itertools.product([self.locations.index(26), self.locations.index(27), self.locations.index(28)], [self.locations.index(26), self.locations.index(27), self.locations.index(28)]):
             self.od_matrix[x[0], x[1], :] = 0
-        self.revenue_matrix = self.dist_matrix * 0.91 + self.time_matrix / 60 * 0.39 + 2.20 + 2.70  # (28, 28, 24) Numpy array of OD matrix with trip revenue in [$]
+        self.revenue_matrix = self.dist_matrix * 0.93 + self.time_matrix / 60 * 0.40 + 2.24 + 3.60  # (28, 28, 24) Numpy array of OD matrix with trip revenue in [$]
 
         if self.use_baseline_charge_stations:
             with open(os.path.join(self.data_path, 'SF_charging_stations_to_25_cluster.p'), 'rb') as f:
                 self.charge_stations = pickle.load(f)
-            desired_total_installed_capacity = 31460.5384644648 #358257.08870379557#374898.8370658811 #629912.7705068741
+            desired_total_installed_capacity = 40402.39561577566 #51237.671047372176 #358257.08870379557#374898.8370658811 #629912.7705068741
             current_total_installed_capacity = 0.0
             for l in self.locations_excl_passthrough:
                 for station in self.charge_stations[l]:
@@ -354,7 +354,7 @@ class NYC_manh(Experiment):
         1, 1, self.od_matrix.shape[2]))  # (28, 28, 24) Numpy array of maximum road capacity [# vehicles]
         # for x in itertools.product([self.locations.index(26), self.locations.index(27), self.locations.index(28)], [self.locations.index(26), self.locations.index(27), self.locations.index(28)]):  # update with borough numbers
         #     self.od_matrix[x[0], x[1], :] = 0
-        self.revenue_matrix = self.dist_matrix * 0.91 + self.time_matrix / 60 * 0.39 + 2.20 + 2.70  # (28, 28, 24) Numpy array of OD matrix with trip revenue in [$]
+        self.revenue_matrix = self.dist_matrix * 0.93 + self.time_matrix / 60 * 0.40 + 2.24 + 3.60  # (28, 28, 24) Numpy array of OD matrix with trip revenue in [$]
         # use_baseline_charge_stations is true
         if self.use_baseline_charge_stations:
             with open(os.path.join(self.data_path, 'manh_charging_stations_cluster.p'), 'rb') as f:
