@@ -272,7 +272,7 @@ class SF_25(Experiment):
         self.revenue_matrix = self.dist_matrix * 0.93 + self.time_matrix / 60 * 0.40 + 2.24 + 3.60  # (28, 28, 24) Numpy array of OD matrix with trip revenue in [$]
 
         if self.use_baseline_charge_stations:
-            with open(os.path.join(self.data_path, 'SF_charging_stations_to_25_cluster.p'), 'rb') as f:
+            with open(os.path.join(self.data_path, 'SF_charging_stations_50kW_to_25_cluster.p'), 'rb') as f:
                 self.charge_stations = pickle.load(f)
             desired_total_installed_capacity = 40402.39561577566 #51237.671047372176 #358257.08870379557#374898.8370658811 #629912.7705068741
             desired_total_installed_capacity *= self.baseline_charge_stations_additional_scaling

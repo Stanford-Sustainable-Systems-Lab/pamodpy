@@ -6,7 +6,6 @@
   "optimize_fleet_size": true,
   "optimize_infra": false,
   "use_baseline_charge_stations": true,
-  "baseline_charge_stations_additional_scaling": 1.01,
   "drop_trips": false,
   "deltaT": 0.25,
   "num_hours": 24,
@@ -19,9 +18,7 @@
   "EVSEs": [
     "AC 6.6kW",
     "AC 11.5kW",
-    "DC 50kW",
-    "DC 100kW",
-    "DC 250kW"
+    "DC 50kW"
   ],
   "Vehicles": [
     "2024 Dacia Spring Electric 65 Expression"

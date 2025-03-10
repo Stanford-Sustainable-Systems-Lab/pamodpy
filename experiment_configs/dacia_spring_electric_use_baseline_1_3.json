@@ -6,7 +6,7 @@
   "optimize_fleet_size": true,
   "optimize_infra": false,
   "use_baseline_charge_stations": true,
-  "baseline_charge_stations_additional_scaling": 1.1,
+  "baseline_charge_stations_additional_scaling": 1.3,
   "drop_trips": false,
   "deltaT": 0.25,
   "num_hours": 24,
