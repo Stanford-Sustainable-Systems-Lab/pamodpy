@@ -94,7 +94,7 @@ class Experiment(ABC):
         self.p_gas = config['p_gas']  #4.127 # [$ / gal] https://www.eia.gov/dnav/pet/pet_pri_gnd_dcus_y05sf_a.htm
         self.p_carbon = config['p_carbon']  #0 # [$ / ton CO2]
         self.p_automation = config['p_automation']  # [$]
-        self.p_wages = config['p_wages'] if 'p_wages' in config else None  # [$ / hr]
+        self.p_wages = config['p_wages'] if 'p_wages' in config else [0 for _ in config['Vehicles']]  # [$ / hr]
 
         # Generated variables
         self.p_elec_energy, self.p_elec_demand = generate_p_elec(config['p_elec'], 1686812400, self.deltaT, int(np.ceil(config['num_hours'] / 24)), config['start_hour'])

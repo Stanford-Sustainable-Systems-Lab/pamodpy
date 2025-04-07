@@ -9,6 +9,8 @@ def load_experiment(json_fname):
     :param json_fname: The name of the json file in the experiment_configs directory to load experiment configurations
     :return: The experiment object
     """
+    if not Path(json_fname).is_file():
+        raise FileNotFoundError('File "{}" not found.'.format(json_fname))
     with open(json_fname, "r") as f:
         experiment_config = json.load(f)
 
