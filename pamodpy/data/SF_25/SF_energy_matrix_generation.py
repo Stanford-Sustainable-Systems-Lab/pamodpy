@@ -7,7 +7,7 @@ distance_matrix = np.load('distance_matrix.npy')
 
 eta_charge = 0.90
 
-wh_per_km = 185
+wh_per_km = 100
 kwh_per_mi = wh_per_km / 1000 * 1.609344 * eta_charge
 print(eta_charge / kwh_per_mi)
 energy_matrix = distance_matrix * kwh_per_mi
