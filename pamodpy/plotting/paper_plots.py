@@ -66,8 +66,8 @@ def boxplot_stackedbar(df: pd.DataFrame, exp_folder_name_to_labels: dict, filena
         df_filtered.loc[:, col_name] = df_filtered[cost_type] / df_filtered['dist_passenger_mi']
         columns.append(col_name)
     df_boxplot = df_filtered[columns]
-    fig, ax = plt.subplots(figsize=(12, 8))
     sns.set_theme(style="whitegrid", font_scale=1.5)
+    fig, ax = plt.subplots(figsize=(12, 8))
     sns.boxplot(data=df_boxplot, ax=ax, palette="pastel", showfliers=False)
     sns.stripplot(data=df_boxplot, ax=ax, color='black', alpha=0.5, jitter=True, size=6)
     ax.set_xticklabels(cost_category_to_label.values(), rotation=45, ha='right', fontsize=14)
@@ -134,7 +134,7 @@ def heatmap_infra_diff(exp_name_to_exp_obj: dict, exp_folder_name_to_labels: tup
     plt.tight_layout()
     plt.savefig(os.path.join(PATH_TO_PAPER_PLOTS, f'{filename_prefix}_heatmap_infra_diff.png'), dpi=300, bbox_inches='tight')
 
-def cost_sensitivity(df: pd.DataFrame, exp_folder_name_to_attributes: dict, filename_prefix: str = ""):
+def cost_sensitivity_to_vehicle_design(df: pd.DataFrame, exp_folder_name_to_attributes: dict, filename_prefix: str = ""):
     df_filtered = df[df['name'].isin([folder_name.split('.')[0] for folder_name in exp_folder_name_to_attributes.keys()])].copy()
     cost_category_to_label = {
         # 'total_d': 'Total',
@@ -173,8 +173,9 @@ def cost_sensitivity(df: pd.DataFrame, exp_folder_name_to_attributes: dict, file
     energy_consump_indices = list(energy_consump_indices)
     batt_indices = list(batt_indices)
 
-    fig, ax = plt.subplots(figsize=(12, 8))
     sns.set_theme(style="whitegrid", font_scale=1.5)
+
+    fig, ax = plt.subplots(figsize=(12, 8))
     palette = sns.color_palette("muted", len(cost_category_to_label))
 
     for i, (cost_category, cost_label) in enumerate(cost_category_to_label.items()):
@@ -184,7 +185,7 @@ def cost_sensitivity(df: pd.DataFrame, exp_folder_name_to_attributes: dict, file
                 label=cost_label, marker='o', markersize=8, linestyle='-', color=palette[i])
 
     ax.axhline(y=100, color='gray', linestyle='--', linewidth=1.5)
-    ax.set_ylim(75, 140)
+    ax.set_ylim(60, 140)
     ax.set_xlabel('Energy Consumption (Wh/mi)', fontsize=16)
     ax.set_ylabel('Cost Relative to Base Case (%)', fontsize=16)
     ax.set_title('Cost Category Sensitivity to Energy Consumption', fontsize=18, pad=20)
@@ -194,7 +195,6 @@ def cost_sensitivity(df: pd.DataFrame, exp_folder_name_to_attributes: dict, file
                 bbox_inches='tight')
 
     fig, ax = plt.subplots(figsize=(12, 8))
-    sns.set_theme(style="whitegrid", font_scale=1.5)
     palette = sns.color_palette("muted", len(cost_category_to_label))
 
     for i, (cost_category, cost_label) in enumerate(cost_category_to_label.items()):
@@ -203,7 +203,7 @@ def cost_sensitivity(df: pd.DataFrame, exp_folder_name_to_attributes: dict, file
                 label=cost_label, marker='o', markersize=8, linestyle='-', color=palette[i])
 
     ax.axhline(y=100, color='gray', linestyle='--', linewidth=1.5)
-    ax.set_ylim(75, 140)
+    ax.set_ylim(60, 140)
     ax.set_xlabel('Battery Size (kWh)', fontsize=16)
     ax.set_ylabel('Cost Relative to Base Case (%)', fontsize=16)
     ax.set_title('Cost Category Sensitivity to Battery Size', fontsize=18, pad=20)
@@ -211,6 +211,90 @@ def cost_sensitivity(df: pd.DataFrame, exp_folder_name_to_attributes: dict, file
     plt.tight_layout()
     plt.savefig(os.path.join(PATH_TO_PAPER_PLOTS, f'{filename_prefix}_cost_sensitivity_batt.png'), dpi=300,
                 bbox_inches='tight')
+
+def cost_carbon_and_elec_fleet_share_vs_carbon_price_or_vehicle_price(
+        df: pd.DataFrame,
+        exp_folder_name_to_attributes: dict,
+        x_axis_variable: str,
+        filename_prefix: str = "",
+        title_prefix: str = "",
+        elec_fleet_share: bool = False
+):
+    df_filtered = df[df['name'].isin([folder_name.split('.')[0] for folder_name in exp_folder_name_to_attributes.keys()])].copy()
+
+    if x_axis_variable == 'carbon_price':
+        x_axis_attr_name = 'dptCO2'
+        x_axis_filename_string = 'carbon_price'
+        x_axis_label = 'Carbon Price ($/tCO2)'
+    elif x_axis_variable == 'vehicle_price':
+        x_axis_attr_name = 'ev_price_ratio'
+        x_axis_filename_string = 'vehicle_price'
+        x_axis_label = 'Electric Vehicle : Hybrid ICE Price Ratio'
+    else:
+        raise ValueError("x_axis_variable must be either 'carbon_price' or 'vehicle_price'.")
+
+    x_axis_data = []
+
+    for exp_folder_name, attributes in exp_folder_name_to_attributes.items():
+        exp_name = exp_folder_name.split('.')[0]
+        index = df_filtered[df_filtered['name'] == exp_name].index[0]
+        x_axis_data.append((attributes[x_axis_attr_name], index))
+
+    x_axis_data.sort()
+    x_axis_values, x_axis_indices = zip(*x_axis_data)
+
+    df_filtered['elec_energy_elec_demand_dist_rebal_infra_d'] = df_filtered['elec_energy_d'] + df_filtered['elec_demand_d'] + df_filtered['dist_rebal_d'] + df_filtered['infra_d']
+
+    if elec_fleet_share:
+        df_filtered['elec_fleet_share'] = df_filtered['fleet_sizes'].apply(lambda x: x[0] / sum(x) * 100)
+
+    sns.set_theme(style="whitegrid", font_scale=1.5)
+    fig, ax1 = plt.subplots(figsize=(12, 8))
+    ax2 = ax1.twinx()
+    ax3 = None
+    if elec_fleet_share:
+        ax3 = ax1.twinx()
+        ax3.spines["right"].set_position(("axes", 1.15))
+        ax3.spines["right"].set_visible(True)
+    palette = sns.color_palette("muted", 3)
+    ax1.plot(
+        x_axis_values,
+        df_filtered.loc[list(x_axis_indices), 'elec_energy_elec_demand_dist_rebal_infra_d'],
+        marker='o', markersize=8, linestyle='-', color=palette[0]
+    )
+    ax2.plot(
+        x_axis_values,
+        df_filtered.loc[list(x_axis_indices), 'carbon_total_tco2'],
+        marker='o', markersize=8, linestyle='-', color=palette[1]
+    )
+    if elec_fleet_share:
+        ax3.plot(
+            x_axis_values,
+            df_filtered.loc[list(x_axis_indices), 'elec_fleet_share'],
+            marker='o', markersize=8, linestyle='--', color=palette[2], label='Electric Fleet Share'
+        )
+
+    ax1.set_xlabel(x_axis_label, fontsize=16)
+    ax1.set_ylabel(
+        'Cost: electricity energy charges + electricity demand charges\n+ distance (rebalancing only) + charging infrastructure ($)',
+        fontsize=16, color=palette[0]
+    )
+    ax1.tick_params(axis='y', labelcolor=palette[0])
+    ax2.set_ylabel('Carbon Emissions (tCO2)', fontsize=16, color=palette[1])
+    ax2.tick_params(axis='y', labelcolor=palette[1])
+    ax2.grid(False)
+    if elec_fleet_share:
+        ax3.set_ylabel('Electric Fleet Share (%)', fontsize=16, color=palette[2])
+        ax3.tick_params(axis='y', labelcolor=palette[2])
+        ax3.grid(False)
+        ax3.set_ylim(top=100)
+    title = 'Cost, Carbon Emissions, and Electric Fleet Share vs Carbon Price' if elec_fleet_share else 'Cost and Carbon Emissions vs Carbon Price'
+    title = title_prefix + title
+    ax1.set_title(title, fontsize=18, pad=20)
+    plt.tight_layout()
+
+    filename = f'{filename_prefix}_cost_carbon_and_elec_fleet_share_vs_{x_axis_filename_string}' if elec_fleet_share else f'{filename_prefix}_cost_and_carbon_vs_{x_axis_filename_string}'
+    plt.savefig(os.path.join(PATH_TO_PAPER_PLOTS, filename), dpi=300, bbox_inches='tight')
 
 def add_exp_to_df(df: pd.DataFrame, exp_folder_name: str, exp_label: str) -> pd.DataFrame:
     exp_name = exp_folder_name.split('.')[0]
@@ -299,7 +383,8 @@ if __name__ == "__main__":
     sections_to_plot = [
         # "sec2",
         # "sec3",
-        "sec4",
+        # "sec4",
+        "sec5",
         # "sup1",
     ]
 
@@ -377,13 +462,13 @@ if __name__ == "__main__":
                 'batt': 25,
                 'range': 134.975,
             },
-            # 'dacia_100Whpkm.zip': {
-            #     'label': '100 Wh/mi, 25 kWh',
-            #     'type': ['ENERGY_CONSUMP'],
-            #     'energy_consump': 100,
-            #     'batt': 25,
-            #     'range': 152.911,
-            # },
+            'dacia_100Whpkm.zip': {
+                'label': '100 Wh/mi, 25 kWh',
+                'type': ['ENERGY_CONSUMP'],
+                'energy_consump': 100,
+                'batt': 25,
+                'range': 152.911,
+            },
             'dacia_22_19kWh' : {
                 'label': '145 Wh/mi, 22.190 kWh',
                 'type': ['BATT'],
@@ -419,17 +504,97 @@ if __name__ == "__main__":
                 'batt': 30.865,
                 'range': 134.975,
             },
-            # 'dacia_34_967kWh.zip' : {
-            #     'label': '145 Wh/mi, 34.967 kWh',
-            #     'type': ['BATT'],
-            #     'energy_consump': 145,
-            #     'batt': 34.967,
-            #     'range': 152.913,
-            # },
+            'dacia_34_967kWh.zip' : {
+                'label': '145 Wh/mi, 34.967 kWh',
+                'type': ['BATT'],
+                'energy_consump': 145,
+                'batt': 34.967,
+                'range': 152.913,
+            },
         }
         for exp_folder_name, attributes in sec4_exp_folder_names_to_attributes.items():
             df = add_exp_to_df(df, exp_folder_name, attributes['label'])
-        cost_sensitivity(df, sec4_exp_folder_names_to_attributes, 'sec4')
+        cost_sensitivity_to_vehicle_design(df, sec4_exp_folder_names_to_attributes, 'sec4')
+
+    if "sec5" in sections_to_plot:
+        sec5_1_exp_folder_names_to_attributes = {
+            'dacia_spring_electric': {
+                'label': 'Crossover City Car, $0/tCO2',
+                'dptCO2': 0,
+            },
+            'dacia_44dptCO2.zip': {
+                'label': 'Crossover City Car, $44/tCO2',
+                'dptCO2': 44,
+            },
+            'dacia_185dptCO2.zip': {
+                'label': 'Crossover City Car, $185/tCO2',
+                'dptCO2': 185,
+            },
+            'dacia_413dptCO2.zip': {
+                'label': 'Crossover City Car, $413/tCO2',
+                'dptCO2': 413,
+            },
+            'dacia_805dptCO2.zip': {
+                'label': 'Crossover City Car, $805/tCO2',
+                'dptCO2': 805,
+            },
+        }
+        for exp_folder_name, attributes in sec5_1_exp_folder_names_to_attributes.items():
+            df = add_exp_to_df(df, exp_folder_name, attributes['label'])
+        cost_carbon_and_elec_fleet_share_vs_carbon_price_or_vehicle_price(df, sec5_1_exp_folder_names_to_attributes, 'carbon_price', 'sec5_1', "Crossover City Car:\n")
+
+        sec5_2_exp_folder_names_to_attributes = {
+            'ioniq_hybrid_electric_1_311.zip': {
+                'label': 'Compact Liftback Mixed Fleet of Hybrid ICE and Electric Vehicles, $0/tCO2',
+                'dptCO2': 0,
+            },
+            'ioniq_hybrid_electric_1_311_44dptCO2.zip': {
+                'label': 'Compact Liftback Mixed Fleet of Hybrid ICE and Electric Vehicles, $44/tCO2',
+                'dptCO2': 44,
+            },
+            'ioniq_hybrid_electric_1_311_185dptCO2.zip': {
+                'label': 'Compact Liftback Mixed Fleet of Hybrid ICE and Electric Vehicles, $185/tCO2',
+                'dptCO2': 185,
+            },
+            'ioniq_hybrid_electric_1_311_413dptCO2.zip': {
+                'label': 'Compact Liftback Mixed Fleet of Hybrid ICE and Electric Vehicles, $413/tCO2',
+                'dptCO2': 413,
+            },
+            'ioniq_hybrid_electric_1_311_805dptCO2.zip': {
+                'label': 'Compact Liftback Mixed Fleet of Hybrid ICE and Electric Vehicles, $805/tCO2',
+                'dptCO2': 805,
+            },
+        }
+        for exp_folder_name, attributes in sec5_2_exp_folder_names_to_attributes.items():
+            df = add_exp_to_df(df, exp_folder_name, attributes['label'])
+        cost_carbon_and_elec_fleet_share_vs_carbon_price_or_vehicle_price(df, sec5_2_exp_folder_names_to_attributes, 'carbon_price','sec5_2', "Compact Liftback Mixed Fleet of Hybrid ICE and Electric Vehicles:\n", True)
+
+        sec5_3_exp_folder_names_to_attributes = {
+            'ioniq_hybrid_electric_1_311.zip': {
+                'label': 'Compact Liftback Mixed Fleet of Hybrid ICE and Electric Vehicles, 1.311',
+                'ev_price_ratio': 1.311,
+            },
+            'ioniq_hybrid_electric_1_234.zip': {
+                'label': 'Compact Liftback Mixed Fleet of Hybrid ICE and Electric Vehicles, 1.234',
+                'ev_price_ratio': 1.234,
+            },
+            'ioniq_hybrid_electric_1_156.zip': {
+                'label': 'Compact Liftback Mixed Fleet of Hybrid ICE and Electric Vehicles, 1.156',
+                'ev_price_ratio': 1.156,
+            },
+            'ioniq_hybrid_electric_1_078.zip': {
+                'label': 'Compact Liftback Mixed Fleet of Hybrid ICE and Electric Vehicles, 1.078',
+                'ev_price_ratio': 1.078,
+            },
+            'ioniq_hybrid_electric_1_000.zip': {
+                'label': 'Compact Liftback Mixed Fleet of Hybrid ICE and Electric Vehicles, 1.000',
+                'ev_price_ratio': 1.000,
+            },
+        }
+        for exp_folder_name, attributes in sec5_3_exp_folder_names_to_attributes.items():
+            df = add_exp_to_df(df, exp_folder_name, attributes['label'])
+        cost_carbon_and_elec_fleet_share_vs_carbon_price_or_vehicle_price(df, sec5_3_exp_folder_names_to_attributes, 'vehicle_price', 'sec5_3', "Compact Liftback Mixed Fleet of Hybrid ICE and Electric Vehicles:\n", True)
+
 
     if "sup1" in sections_to_plot:
         sup1_exp_folder_names_to_label = {
