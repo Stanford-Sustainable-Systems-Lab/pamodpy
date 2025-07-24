@@ -1,0 +1,40 @@
+{
+  "experiment_type": "PAMoDFleet",
+  "algorithm": "PAMoD_optimization_gurobi",
+  "region": "SF_25",
+  "results_path": "$SCRATCH/pamodpy_results",
+  "optimize_fleet_size": true,
+  "optimize_infra": true,
+  "use_baseline_charge_stations": false,
+  "drop_trips": false,
+  "deltaT": 0.25,
+  "num_hours": 24,
+  "start_hour": 0,
+  "deltaC": 0.5,
+  "batt_cap_ranges": [
+    [0.318, 1.0]
+  ],
+  "charge_throttle": false,
+  "EVSEs": [
+    "AC 6.6kW",
+    "AC 11.5kW",
+    "DC 50kW"
+  ],
+  "Vehicles": [
+    "dacia_21_583kWh"
+  ],
+  "fleet_sizes": [
+    154775
+  ],
+  "compute_power": [
+    0.5
+  ],
+  "p_travel": 0.0789,
+  "p_ownership_excl_deprec": 2530,
+  "p_travel_ICE": 0.0966,
+  "p_elec": "BEV-2-S",
+  "p_gas": 4.652,
+  "p_carbon": 0,
+  "p_automation": [10000],
+  "p_wages": [0]
+}

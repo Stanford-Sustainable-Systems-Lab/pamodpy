@@ -7,8 +7,12 @@ name,make,model,year,trim,powertrain,m,Af,Cd,Cr,batt_cap,max_charge_rate_AC,max_
 2024 Jaguar I-PACE EV400 R-Dynamic HSE,Jaguar,I-PACE,2024,EV400 R-Dynamic HSE,electric,2170,2.65,0.29,NA,84.7,11,104,2.465758699,NA,72500,energies_2024_Jaguar_I-PACE_EV400_R-Dynamic_HSE.npy
 2024 Hyundai IONIQ 5 SE,Hyundai,IONIQ 5,2024,SE,electric,1930,2.73,0.288,NA,77.4,10.9,250,3.655124660,NA,45850,energies_2024_Hyundai_IONIQ_5_SE.npy
 dacia_21_008kWh,Dacia,Spring,2024,Electric 65 Expression,electric,984,2.13,0.35,NA,21.008,7,34,4.285318567,NA,20457,energies_145Whpkm_25kWh.npy
+dacia_21_583kWh,Dacia,Spring,2024,Electric 65 Expression,electric,984,2.13,0.35,NA,21.583,7,34,4.285318567,NA,20457,energies_145Whpkm_25kWh.npy
 dacia_22_19kWh,Dacia,Spring,2024,Electric 65 Expression,electric,984,2.13,0.35,NA,22.19,7,34,4.285318567,NA,20457,energies_145Whpkm_25kWh.npy
+dacia_22_831kWh,Dacia,Spring,2024,Electric 65 Expression,electric,984,2.13,0.35,NA,22.831,7,34,4.285318567,NA,20457,energies_145Whpkm_25kWh.npy
 dacia_23_511kWh,Dacia,Spring,2024,Electric 65 Expression,electric,984,2.13,0.35,NA,23.511,7,34,4.285318567,NA,20457,energies_145Whpkm_25kWh.npy
+dacia_24_233kWh,Dacia,Spring,2024,Electric 65 Expression,electric,984,2.13,0.35,NA,24.233,7,34,4.285318567,NA,20457,energies_145Whpkm_25kWh.npy
+dacia_25_818kWh,Dacia,Spring,2024,Electric 65 Expression,electric,984,2.13,0.35,NA,25.818,7,34,4.285318567,NA,20457,energies_145Whpkm_25kWh.npy
 dacia_26_691kWh,Dacia,Spring,2024,Electric 65 Expression,electric,984,2.13,0.35,NA,26.691,7,34,4.285318567,NA,20457,energies_145Whpkm_25kWh.npy
 dacia_28_627kWh,Dacia,Spring,2024,Electric 65 Expression,electric,984,2.13,0.35,NA,28.627,7,34,4.285318567,NA,20457,energies_145Whpkm_25kWh.npy
 dacia_30_865kWh,Dacia,Spring,2024,Electric 65 Expression,electric,984,2.13,0.35,NA,30.865,7,34,4.285318567,NA,20457,energies_145Whpkm_25kWh.npy
@@ -16,9 +20,13 @@ dacia_34_967kWh,Dacia,Spring,2024,Electric 65 Expression,electric,984,2.13,0.35,
 dacia_100Whpkm,Dacia,Spring,2024,Electric 65 Expression,electric,984,2.13,0.35,NA,25,7,34,6.213711922,NA,20457,energies_100Whpkm_25kWh.npy
 dacia_115Whpkm,Dacia,Spring,2024,Electric 65 Expression,electric,984,2.13,0.35,NA,25,7,34,5.403227759,NA,20457,energies_115Whpkm_25kWh.npy
 dacia_125Whpkm,Dacia,Spring,2024,Electric 65 Expression,electric,984,2.13,0.35,NA,25,7,34,4.970969538,NA,20457,energies_125Whpkm_25kWh.npy
+dacia_140Whpkm,Dacia,Spring,2024,Electric 65 Expression,electric,984,2.13,0.35,NA,25,7,34,4.438365659,NA,20457,energies_140Whpkm_25kWh.npy
 dacia_145Whpkm,Dacia,Spring,2024,Electric 65 Expression,electric,984,2.13,0.35,NA,25,7,34,4.285318567,NA,20457,energies_145Whpkm_25kWh.npy
+dacia_150Whpkm,Dacia,Spring,2024,Electric 65 Expression,electric,984,2.13,0.35,NA,25,7,34,4.142474615,NA,20457,energies_150Whpkm_25kWh.npy
 dacia_155Whpkm,Dacia,Spring,2024,Electric 65 Expression,electric,984,2.13,0.35,NA,25,7,34,4.008846402,NA,20457,energies_155Whpkm_25kWh.npy
+dacia_160Whpkm,Dacia,Spring,2024,Electric 65 Expression,electric,984,2.13,0.35,NA,25,7,34,3.883569951,NA,20457,energies_160Whpkm_25kWh.npy
 dacia_165Whpkm,Dacia,Spring,2024,Electric 65 Expression,electric,984,2.13,0.35,NA,25,7,34,3.765886014,NA,20457,energies_165Whpkm_25kWh.npy
+dacia_170Whpkm,Dacia,Spring,2024,Electric 65 Expression,electric,984,2.13,0.35,NA,25,7,34,3.65512466,NA,20457,energies_170Whpkm_25kWh.npy
 dacia_175Whpkm,Dacia,Spring,2024,Electric 65 Expression,electric,984,2.13,0.35,NA,25,7,34,3.550692527,NA,20457,energies_175Whpkm_25kWh.npy
 dacia_178Whpkm,Dacia,Spring,2024,Electric 65 Expression,electric,984,2.13,0.35,NA,25,7,34,3.490849395,NA,20457,energies_178Whpkm_25kWh.npy
 dacia_185Whpkm,Dacia,Spring,2024,Electric 65 Expression,electric,984,2.13,0.35,NA,25,7,34,3.358763201,NA,20457,energies_185Whpkm_25kWh.npy
