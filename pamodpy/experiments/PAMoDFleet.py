@@ -480,7 +480,7 @@ class PAMoDFleet(metaclass=MetaPAMoDFleet):
         np.save(os.path.join(self.results_path, 'U_list.npy'), self.U_list)
         np.save(os.path.join(self.results_path, 'U_trip_charge_idle_list.npy'), self.U_trip_charge_idle_list)
         np.save(os.path.join(self.results_path, 'U_rebal_list.npy'), self.U_rebal_list)
-        if self.optimize_infra:
+        if self.optimize_infra or self.use_baseline_charge_stations:
             np.save(os.path.join(self.results_path, 'UMax_charge.npy'), self.UMax_charge)
         np.save(os.path.join(self.results_path, 'cost_list.npy'), self.costs_list)
         self.logger = None
