@@ -6,6 +6,7 @@ from pickle import Unpickler
 import zipfile
 
 import geopandas as gpd
+import inflect
 import matplotlib.pyplot as plt
 from matplotlib.colors import TwoSlopeNorm
 import numpy as np
@@ -66,8 +67,17 @@ COLORS = {
     'sum_d': sns.color_palette("dark")[0],
 }
 
-def boxplot_stackedbar(df: pd.DataFrame, exp_folder_name_to_labels: dict, filename_prefix: str = "") -> None:
-    df_filtered = df[df['name'].isin([folder_name.split('.')[0] for folder_name in exp_folder_name_to_labels.keys()])].copy()
+KM_PER_MI = 1.609344
+
+def boxplot_stackedbar(
+        df: pd.DataFrame,
+        exp_folder_name_to_labels: dict,
+        filename_prefix: str = "",
+        xlabel="Scenario",
+        reference_exp=None,
+    ) -> None:
+    valid_pairs = {(key.split('.')[0], value) for key, value in exp_folder_name_to_labels.items()}
+    df_filtered = df[df.apply(lambda row: (row['name'], row['label']) in valid_pairs, axis=1)].copy()
     cost_category_to_label = {
         # 'total_d': 'Total',
         'fleet_d': 'Vehicles',
@@ -83,8 +93,8 @@ def boxplot_stackedbar(df: pd.DataFrame, exp_folder_name_to_labels: dict, filena
     columns = []
     boxplot_colors = {}
     for cost_category in cost_category_to_label.keys():
-        col_name = cost_category[:-1] + "cts_per_passenger_mile"
-        df_filtered.loc[:, col_name] = df_filtered[cost_category] / df_filtered['dist_passenger_mi'] * 100
+        col_name = cost_category[:-1] + "cts_per_passenger_kilometer"
+        df_filtered.loc[:, col_name] = df_filtered[cost_category] / (df_filtered['dist_passenger_mi'] * KM_PER_MI) * 100
         columns.append(col_name)
         boxplot_colors[col_name] = COLORS[cost_category]
     df_boxplot = df_filtered[columns]
@@ -93,10 +103,11 @@ def boxplot_stackedbar(df: pd.DataFrame, exp_folder_name_to_labels: dict, filena
     sns.boxplot(data=df_boxplot, ax=ax, palette=boxplot_colors, showfliers=False)
     sns.stripplot(data=df_boxplot, ax=ax, color='black', alpha=0.5, jitter=True, size=6)
     ax.set_xticklabels(cost_category_to_label.values(), rotation=45, ha='right', fontsize=14)
-    ax.set_ylabel('Cost per Passenger Mile (cts/mi)', fontsize=16)
+    ax.set_ylabel('Cost per Passenger Kilometer (cts/km)', fontsize=16)
     ax.set_xlabel('Cost Category', fontsize=16)
+    p = inflect.engine()
     if SHOW_TITLE:
-        ax.set_title('Cost Category Box Plots Across Different Vehicle Types', fontsize=18, pad=20)
+        ax.set_title(f'Cost Category Box Plots Across Different {p.plural(xlabel)}', fontsize=18, pad=20)
     plt.tight_layout()
     for fig_format in FIG_FORMATS:
         plt.savefig(os.path.join(PATH_TO_PAPER_PLOTS, f"fig_{filename_prefix}_boxplot.{fig_format}"), dpi=300, bbox_inches='tight')
@@ -113,16 +124,22 @@ def boxplot_stackedbar(df: pd.DataFrame, exp_folder_name_to_labels: dict, filena
 
     fig, ax = plt.subplots(figsize=(12, 8))
     bottom = np.zeros(len(df_filtered))
+    reference_scenario_sum_cost = 0
     for i, cost_category in enumerate(cost_category_to_label.keys()):
         if cost_category == 'total_d':
             continue
-        col_name = cost_category[:-1] + "cts_per_passenger_mile"
+        col_name = cost_category[:-1] + "cts_per_passenger_kilometer"
         ax.bar(df_filtered['label'], df_filtered[col_name], label=cost_category_to_label[cost_category], bottom=bottom, color=COLORS[cost_category], edgecolor='black', linewidth=0.3)
+        if reference_exp:
+            reference_scenario_sum_cost += df_filtered.loc[df_filtered['name'] == reference_exp, col_name].iloc[0]
         bottom += df_filtered[col_name]
-    ax.set_ylabel('Cost per Passenger Mile (cts/mi)', fontsize=16)
-    ax.set_xlabel('Vehicle Type', fontsize=16)
+    if reference_exp is not None:
+        reference_scenario_label = df_filtered.loc[df_filtered['name'] == reference_exp, 'label'].iloc[0]
+        ax.axhline(y=reference_scenario_sum_cost, color='black', linestyle='--', linewidth=1.5, label=f'{reference_scenario_label}')
+    ax.set_ylabel('Cost per Passenger Kilometer (cts/km)', fontsize=16)
+    ax.set_xlabel(xlabel, fontsize=16)
     if SHOW_TITLE:
-        ax.set_title('Cost Breakdown for Each Vehicle Type', fontsize=18, pad=20)
+        ax.set_title(f'Cost Breakdown for Each {xlabel}', fontsize=18, pad=20)
     ax.legend(title="Cost Categories", fontsize=12, title_fontsize=14, loc='upper left', bbox_to_anchor=(1, 1))
     plt.xticks(rotation=45, ha='right', fontsize=14)
     plt.tight_layout()
@@ -131,21 +148,62 @@ def boxplot_stackedbar(df: pd.DataFrame, exp_folder_name_to_labels: dict, filena
 
     fig, ax = plt.subplots(figsize=(12, 8))
     bottom = np.zeros(len(df_filtered))
+    reference_scenario_sum_contr_cost = 0
     for i, cost_category in enumerate(cost_category_to_label.keys()):
         if cost_category in ['total_d', 'fleet_d', 'dist_pass_d']:
             continue
-        col_name = cost_category[:-1] + "cts_per_passenger_mile"
+        col_name = cost_category[:-1] + "cts_per_passenger_kilometer"
         ax.bar(df_filtered['label'], df_filtered[col_name], label=cost_category_to_label[cost_category], bottom=bottom, color=COLORS[cost_category], edgecolor='black', linewidth=0.3)
+        if reference_exp:
+            reference_scenario_sum_contr_cost += df_filtered.loc[df_filtered['name'] == reference_exp, col_name].iloc[0]
         bottom += df_filtered[col_name]
-    ax.set_ylabel('Variable Costs per Passenger Mile (cts/mi)', fontsize=16)
-    ax.set_xlabel('Vehicle Type', fontsize=16)
+    if reference_exp is not None:
+        reference_scenario_label = df_filtered.loc[df_filtered['name'] == reference_exp, 'label'].iloc[0]
+        ax.axhline(y=reference_scenario_sum_contr_cost, color='black', linestyle='--', linewidth=1.5, label=f'{reference_scenario_label}')
+    ax.set_ylabel('Controllable Costs\nper Passenger Kilometer (cts/km)', fontsize=16)
+    ax.set_xlabel(xlabel, fontsize=16)
     if SHOW_TITLE:
-        ax.set_title('Variable Costs Breakdown for Each Vehicle Type', fontsize=18, pad=20)
+        ax.set_title(f'Controllable Costs Breakdown for Each {xlabel}', fontsize=18, pad=20)
     ax.legend(title="Cost Categories", fontsize=12, title_fontsize=14, loc='upper left', bbox_to_anchor=(1, 1))
     plt.xticks(rotation=45, ha='right', fontsize=14)
     plt.tight_layout()
     for fig_format in FIG_FORMATS:
-        plt.savefig(os.path.join(PATH_TO_PAPER_PLOTS, f'fig_{filename_prefix}_var_costs_stackedbar.{fig_format}'), dpi=300, bbox_inches='tight')
+        plt.savefig(os.path.join(PATH_TO_PAPER_PLOTS, f'fig_{filename_prefix}_contr_costs_stackedbar.{fig_format}'), dpi=300, bbox_inches='tight')
+
+def infra_bar(exp_folder_name_to_labels: dict, evse_names_rates: tuple, filename_prefix: str = ""):
+    n = len(exp_folder_name_to_labels)
+    x = np.arange(n)
+    width = 0.15  # Width of the bars
+    offset_multiplier = 0
+
+    labels = []
+    data = {evse_name: np.zeros(n) for evse_name, _ in evse_names_rates}
+    for exp_idx, (exp_folder_name, exp_label) in enumerate(exp_folder_name_to_labels.items()):
+        exp_UMax_charge = load_npy_data(exp_folder_name, "UMax_charge")
+        labels.append(exp_label)
+        for evse_idx in range(len(exp_UMax_charge[1])):
+            evse_name, evse_rate = evse_names_rates[evse_idx]
+            data[evse_name][exp_idx] = np.sum(exp_UMax_charge[:, evse_idx] * evse_rate)
+
+    sns.set_theme(style="whitegrid", font_scale=1.5)
+    fig, ax = plt.subplots(figsize=(n * 4, 8))
+    for i, (evse_name, evse_data) in enumerate(data.items()):
+        offset = width * offset_multiplier
+        rects = ax.bar(x + offset, evse_data / 1000, width, label=evse_name)
+        ax.bar_label(rects, padding=3, fmt='%.1f')
+        offset_multiplier += 1
+
+    ax.set_ylabel('Installed Charging Infrastructure Capacity (MW)', fontsize=16)
+    ax.set_xlabel('Scenario', fontsize=16)
+    ax.set_xticks(x + width, labels, fontsize=14)
+    ax.legend(title='EVSE', fontsize=14, title_fontsize=16)
+
+    if SHOW_TITLE:
+        plt.title('Installed Charging Infrastructure Capacity by EVSE Type', fontsize=18, pad=20)
+
+    plt.tight_layout()
+    for fig_format in FIG_FORMATS:
+        plt.savefig(os.path.join(PATH_TO_PAPER_PLOTS, f'fig_{filename_prefix}_infra_bar.{fig_format}'), dpi=300, bbox_inches='tight')
 
 def heatmap_infra_diff(exp_name_to_exp_obj: dict, exp_folder_name_and_label: tuple, filename_prefix: str = ""):
     exp1_name, exp1_label = exp_folder_name_and_label[0]
@@ -205,7 +263,8 @@ def heatmap_infra_diff(exp_name_to_exp_obj: dict, exp_folder_name_and_label: tup
 
 def cost_carbon_sensitivity(df: pd.DataFrame, exp_folder_name_to_attributes: dict, variables: list[str], filename_prefix: str = "", include_carbon: bool = False, include_avg_elec_cost: bool = False):
     n_var = len(variables)
-    df_filtered = df[df['name'].isin([folder_name.split('.')[0] for folder_name in exp_folder_name_to_attributes.keys()])].copy()
+    valid_pairs = {(key.split('.')[0], value['label']) for key, value in exp_folder_name_to_attributes.items()}
+    df_filtered = df[df.apply(lambda row: (row['name'], row['label']) in valid_pairs, axis=1)].copy()
     cost_category_to_label = {
         # 'total_d': 'Total',
         'dist_rebal_d': 'Distance: Rebalancing Only',
@@ -258,9 +317,9 @@ def cost_carbon_sensitivity(df: pd.DataFrame, exp_folder_name_to_attributes: dic
     }
 
     units_dict = {
-        'energy_consump': 'Wh/mi',
+        'energy_consump': 'Wh/km',
         'batt': 'kWh',
-        'range': 'mi',
+        'range': 'km',
         'carbon_price': '$/tCO2',
         'ev_price_ratio': '',
         'compute_power': 'W',
@@ -356,7 +415,8 @@ def cost_carbon_and_elec_fleet_share_vs_carbon_price_or_vehicle_price(
         title_prefix: str = "",
         include_elec_fleet_share: bool = False
 ):
-    df_filtered = df[df['name'].isin([folder_name.split('.')[0] for folder_name in exp_folder_name_to_attributes.keys()])].copy()
+    valid_pairs = {(key.split('.')[0], value['label']) for key, value in exp_folder_name_to_attributes.items()}
+    df_filtered = df[df.apply(lambda row: (row['name'], row['label']) in valid_pairs, axis=1)].copy()
 
     if variable == 'carbon_price':
         x_axis_attr_name = 'carbon_price'
@@ -381,13 +441,13 @@ def cost_carbon_and_elec_fleet_share_vs_carbon_price_or_vehicle_price(
     x_axis_data.sort()
     x_axis_values, x_axis_indices = zip(*x_axis_data)
 
-    # df_filtered['variable_costs'] = (
+    # df_filtered['controllable_costs'] = (
     #         df_filtered['elec_energy_d'] + df_filtered['elec_demand_d'] +
     #         df_filtered['dist_rebal_d'] + df_filtered['infra_d'] + df_filtered['gas_d']
-    # ) / df_filtered['dist_passenger_mi'] * 100
+    # ) / (df_filtered['dist_passenger_mi'] * KM_PER_MI) * 100
     df_filtered['total_cost_minus_carbon_cost'] = (
             df_filtered['total_d'] - df_filtered['elec_carbon_d'] - df_filtered['gas_carbon_d']
-    ) / df_filtered['dist_passenger_mi'] * 100
+    ) / (df_filtered['dist_passenger_mi'] * KM_PER_MI) * 100
 
     df_filtered['elec_fleet_share'] = df_filtered['fleet_sizes'].apply(lambda x: x[0] / sum(x) * 100)
 
@@ -407,7 +467,7 @@ def cost_carbon_and_elec_fleet_share_vs_carbon_price_or_vehicle_price(
     )
     ax2.plot(
         x_axis_values,
-        df_filtered.loc[list(x_axis_indices), 'carbon_total_tco2'] / df_filtered.loc[list(x_axis_indices), 'dist_passenger_mi'] * 1000 * 1000,
+        df_filtered.loc[list(x_axis_indices), 'carbon_total_tco2'] /(df_filtered.loc[list(x_axis_indices), 'dist_passenger_mi'] * KM_PER_MI) * 1000 * 1000,
         marker='o', markersize=8, linestyle='--', color=COLORS['carbon_total_tco2']
     )
     if include_elec_fleet_share:
@@ -418,9 +478,9 @@ def cost_carbon_and_elec_fleet_share_vs_carbon_price_or_vehicle_price(
         )
 
     ax1.set_xlabel(x_axis_label, fontsize=16)
-    ax1.set_ylabel('Total Cost (excluding carbon) per Passenger Mile (cts/mi)', fontsize=16, color=palette[0])
+    ax1.set_ylabel('Total Cost (excluding carbon) per Passenger Kilometer (cts/km)', fontsize=16, color=palette[0])
     ax1.tick_params(axis='y', labelcolor=palette[0])
-    ax2.set_ylabel('Carbon Emissions per Passenger Mile (gCO2/mi)', fontsize=16, color=COLORS['carbon_total_tco2'])
+    ax2.set_ylabel('Carbon Emissions per Passenger Kilometer (gCO2/km)', fontsize=16, color=COLORS['carbon_total_tco2'])
     ax2.tick_params(axis='y', labelcolor=COLORS['carbon_total_tco2'])
     ax2.grid(False)
     if include_elec_fleet_share:
@@ -450,15 +510,15 @@ def charging_profile(exp_name_to_exp_obj: dict, exp_folder_name_to_labels: dict,
         deltaT = exp_obj.deltaT
         time_vec = np.arange(startT * deltaT, endT * deltaT, deltaT)
         time_vec = pd.to_datetime(time_vec, unit='h', origin='unix').strftime('%H:%M')
-        charge_arr = []
+        charge_arr = np.zeros(len(time_vec))
         num_vehicle_types = len(exp_obj.PAMoDVehicles)
         for i in range(num_vehicle_types):
-            for t in range(startT, endT):
+            for t_idx, t in enumerate(range(startT, endT)):
                 E_charge_idx_t = exp_obj.PAMoDVehicles[i].filter_edge_idx('charge', t=t)
-                charge_arr.append(
+                charge_arr[t_idx] += (
                     np.sum(np.multiply(exp_obj.U_list[i][E_charge_idx_t],
                                        exp_obj.PAMoDVehicles[i].power_conv[E_charge_idx_t])))
-        ax.step(time_vec, np.array(charge_arr) / 1000, where='post', label=label)
+        ax.step(time_vec, charge_arr / 1000, where='post', label=label)
     ax2 = ax.twinx()
     ax2.grid(False)
     carbon_intensity_grid = generate_carbon_intensity_grid(int(np.round(24 / deltaT))) * 1000 * 1000
@@ -489,6 +549,16 @@ def charging_profile(exp_name_to_exp_obj: dict, exp_folder_name_to_labels: dict,
     plt.tight_layout()
     for fig_format in FIG_FORMATS:
         plt.savefig(os.path.join(PATH_TO_PAPER_PLOTS, f'fig_{filename_prefix}_charging_profile.{fig_format}'), dpi=300, bbox_inches='tight')
+
+def load_npy_data(exp_folder_name: str, npy_name: str) -> np.ndarray:
+    exp_name = exp_folder_name.split('.')[0]
+    if exp_folder_name.endswith('.zip'):
+        zip_file = zipfile.ZipFile(os.path.join(PATH_TO_RESULTS_DATA, exp_folder_name), 'r')
+        with zip_file.open(f'PAMoDFleet/{npy_name}.npy') as f:
+            return np.load(io.BytesIO(f.read()))
+    else:
+        npy_file = os.path.join(PATH_TO_RESULTS_DATA, exp_name, 'PAMoDFleet', f'{npy_name}.npy')
+        return np.load(npy_file)
 
 def add_exp_to_df(df: pd.DataFrame, exp_folder_name: str, exp_label: str) -> pd.DataFrame:
     exp_name = exp_folder_name.split('.')[0]
@@ -556,7 +626,9 @@ def get_data_from_log_file(log_file: io.TextIOWrapper, exp_name: str, label: str
             data['infra_capacity_kw'] = float(line.split("infra_capacity: ")[1].strip())
     data['carbon_elec_tco2_per_kwh'] = data['carbon_elec_tco2'] / data['elec_energy_kwh']
     data['cost_per_mile'] = data['total_d'] / data['dist_total_mi']
+    data['cost_per_kilometer'] = data['total_d'] / (data['dist_total_mi'] * KM_PER_MI)
     data['cost_per_passenger_mile'] = data['total_d'] / data['dist_passenger_mi']
+    data['cost_per_passenger_kilometer'] = data['total_d'] / (data['dist_passenger_mi'] * KM_PER_MI)
     data['cost_elec_energy_per_kwh'] = data['elec_energy_d'] / data['elec_energy_kwh']
     data['cost_elec_per_kwh'] = (data['elec_energy_d'] + data['elec_demand_d']) / data['elec_energy_kwh']
     data['rebal_rate'] = data['dist_rebal_mi'] / data['dist_total_mi']
@@ -599,11 +671,12 @@ if __name__ == "__main__":
     exp_name_to_exp_obj = {}
 
     sections_to_plot = [
-        # "sec2",
+        "sec2",
         "sec3",
-        # "sec4",
-        # "sec5",
-        # "sup1",
+        "sec4",
+        "sec5",
+        "sup1",
+        "sup2",
     ]
 
     if "sec2" in sections_to_plot:
@@ -617,7 +690,12 @@ if __name__ == "__main__":
         }
         for exp_folder_name, label in sec2_exp_folder_names_to_label.items():
             df = add_exp_to_df(df, exp_folder_name, label)
-        boxplot_stackedbar(df, sec2_exp_folder_names_to_label, 'sec2')
+        boxplot_stackedbar(df, sec2_exp_folder_names_to_label, 'sec2', xlabel='Vehicle Type')
+        infra_bar(
+            sec2_exp_folder_names_to_label,
+            (('AC 6.6kW', 6.6), ('AC 11.5kW', 11.5), ('DC 50kW', 50), ('DC 100kW', 100), ('DC 250kW', 250)),
+            'sec2'
+        )
 
         sec2_2_exp_folder_names_to_label = {
             'dacia_spring_electric': 'Crossover City Car',
@@ -637,56 +715,61 @@ if __name__ == "__main__":
             df = add_exp_to_df(df, exp_folder_name, label)
             load_exp(exp_folder_name, exp_name_to_exp_obj)
 
-        boxplot_stackedbar(df, sec3_exp_folder_name_to_label, 'sec3')
-        charging_profile(exp_name_to_exp_obj, sec3_exp_folder_name_to_label, 'Optimization', 'sec3')
+        boxplot_stackedbar(df, sec3_exp_folder_name_to_label, 'sec3', xlabel='Optimization Type')
+        infra_bar(
+            sec3_exp_folder_name_to_label,
+            (('AC 6.6kW', 6.6), ('AC 11.5kW', 11.5), ('DC 50kW', 50)),
+            'sec3'
+        )
+        charging_profile(exp_name_to_exp_obj, sec3_exp_folder_name_to_label, 'Optimization Type', 'sec3')
         heatmap_infra_diff(exp_name_to_exp_obj, tuple((key, value) for key, value in sec3_exp_folder_name_to_label.items()), 'sec3')
 
     if "sec4" in sections_to_plot:
         sec4_1_exp_folder_names_to_attributes = {
             # 'dacia_175Whpkm' : {
-            #     'label': '175 Wh/mi, 25 kWh',
+            #     'label': '175 Wh/km, 25 kWh',
             #     'type': ['ENERGY_CONSUMP'],
             #     'energy_consump': 175,
             #     'batt': 25,
             #     'range': 91.870,
             # },
             'dacia_170Whpkm': {
-                'label': '170 Wh/mi, 25 kWh',
+                'label': '170 Wh/km, 25 kWh',
                 'type': ['ENERGY_CONSUMP'],
                 'energy_consump': 170,
                 'batt': 25,
                 'range': 94.382,
             },
             'dacia_165Whpkm' : {
-                'label': '165 Wh/mi, 25 kWh',
+                'label': '165 Wh/km, 25 kWh',
                 'type': ['ENERGY_CONSUMP'],
                 'energy_consump': 165,
                 'batt': 25,
                 'range': 97.035,
             },
             'dacia_160Whpkm': {
-                'label': '160 Wh/mi, 25 kWh',
+                'label': '160 Wh/km, 25 kWh',
                 'type': ['ENERGY_CONSUMP'],
                 'energy_consump': 160,
                 'batt': 25,
                 'range': 99.841,
             },
             'dacia_155Whpkm' : {
-                'label': '155 Wh/mi, 25 kWh',
+                'label': '155 Wh/km, 25 kWh',
                 'type': ['ENERGY_CONSUMP'],
                 'energy_consump': 155,
                 'batt': 25,
                 'range': 102.815,
             },
             'dacia_150Whpkm': {
-                'label': '150 Wh/mi, 25 kWh',
+                'label': '150 Wh/km, 25 kWh',
                 'type': ['ENERGY_CONSUMP'],
                 'energy_consump': 150,
                 'batt': 25,
                 'range': 105.971,
             },
             'dacia_145Whpkm' : {
-                'label': '145 Wh/mi, 25 kWh',
+                'label': '145 Wh/km, 25 kWh',
                 'type': ['ENERGY_CONSUMP', 'BATT'],
                 'energy_consump': 145,
                 'batt': 25,
@@ -694,105 +777,105 @@ if __name__ == "__main__":
                 'base_case': True,
             },
             'dacia_140Whpkm' : {
-                'label': '140 Wh/mi, 25 kWh',
+                'label': '140 Wh/km, 25 kWh',
                 'type': ['ENERGY_CONSUMP'],
                 'energy_consump': 140,
                 'batt': 25,
                 'range': 112.903,
             },
             'dacia_spring_electric' : {
-                'label': '135 Wh/mi, 25 kWh',
+                'label': '135 Wh/km, 25 kWh',
                 'type': ['ENERGY_CONSUMP'],
                 'energy_consump': 135,
                 'batt': 25,
                 'range': 116.720,
             },
             'dacia_125Whpkm' : {
-                'label': '125 Wh/mi, 25 kWh',
+                'label': '125 Wh/km, 25 kWh',
                 'type': ['ENERGY_CONSUMP'],
                 'energy_consump': 125,
                 'batt': 25,
                 'range': 125.186,
             },
             'dacia_115Whpkm' : {
-                'label': '115 Wh/mi, 25 kWh',
+                'label': '115 Wh/km, 25 kWh',
                 'type': ['ENERGY_CONSUMP'],
                 'energy_consump': 115,
                 'batt': 25,
                 'range': 134.975,
             },
             'dacia_100Whpkm.zip': {
-                'label': '100 Wh/mi, 25 kWh',
+                'label': '100 Wh/km, 25 kWh',
                 'type': ['ENERGY_CONSUMP'],
                 'energy_consump': 100,
                 'batt': 25,
                 'range': 152.911,
             },
             'dacia_21_583kWh': {
-                'label': '145 Wh/mi, 21.583 kWh',
+                'label': '145 Wh/km, 21.583 kWh',
                 'type': ['BATT'],
                 'energy_consump': 145,
                 'batt': 21.583,
                 'range': 94.384,
             },
             'dacia_22_19kWh' : {
-                'label': '145 Wh/mi, 22.190 kWh',
+                'label': '145 Wh/km, 22.190 kWh',
                 'type': ['BATT'],
                 'energy_consump': 145,
                 'batt': 22.190,
                 'range': 97.039,
             },
             'dacia_22_831kWh': {
-                'label': '145 Wh/mi, 22.831 kWh',
+                'label': '145 Wh/km, 22.831 kWh',
                 'type': ['BATT'],
                 'energy_consump': 145,
                 'batt': 22.831,
                 'range': 99.842,
             },
             'dacia_23_511kWh' : {
-                'label': '145 Wh/mi, 23.511 kWh',
+                'label': '145 Wh/km, 23.511 kWh',
                 'type': ['BATT'],
                 'energy_consump': 145,
                 'batt': 23.511,
                 'range': 102.815,
             },
             'dacia_24_233kWh' : {
-                'label': '145 Wh/mi, 24.233 kWh',
+                'label': '145 Wh/km, 24.233 kWh',
                 'type': ['BATT'],
                 'energy_consump': 145,
                 'batt': 24.233,
                 'range': 105.973,
             },
             'dacia_25_818kWh' : {
-                'label': '145 Wh/mi, 25.818 kWh',
+                'label': '145 Wh/km, 25.818 kWh',
                 'type': ['BATT'],
                 'energy_consump': 145,
                 'batt': 25.818,
                 'range': 112.904,
             },
             'dacia_26_691kWh.zip' : {
-                'label': '145 Wh/mi, 26.691 kWh',
+                'label': '145 Wh/km, 26.691 kWh',
                 'type': ['BATT'],
                 'energy_consump': 145,
                 'batt': 26.691,
                 'range': 116.722,
             },
             'dacia_28_627kWh.zip' : {
-                'label': '145 Wh/mi, 28.627 kWh',
+                'label': '145 Wh/km, 28.627 kWh',
                 'type': ['BATT'],
                 'energy_consump': 145,
                 'batt': 28.627,
                 'range': 125.188,
             },
             'dacia_30_865kWh.zip' : {
-                'label': '145 Wh/mi, 30.865 kWh',
+                'label': '145 Wh/km, 30.865 kWh',
                 'type': ['BATT'],
                 'energy_consump': 145,
                 'batt': 30.865,
                 'range': 134.975,
             },
             'dacia_34_967kWh.zip' : {
-                'label': '145 Wh/mi, 34.967 kWh',
+                'label': '145 Wh/km, 34.967 kWh',
                 'type': ['BATT'],
                 'energy_consump': 145,
                 'batt': 34.967,
@@ -844,15 +927,25 @@ if __name__ == "__main__":
         for exp_folder_name, label in sec4_3_exp_folder_names_to_label.items():
             df = add_exp_to_df(df, exp_folder_name, label)
             load_exp(exp_folder_name, exp_name_to_exp_obj)
+        infra_bar(
+            sec4_3_exp_folder_names_to_label,
+            (('AC 6.6kW', 6.6), ('AC 11.5kW', 11.5), ('DC 50kW', 50)),
+            'sec4_3'
+        )
         charging_profile(exp_name_to_exp_obj, sec4_3_exp_folder_names_to_label, 'Autonomy Stack Power Consumption', 'sec4_3')
         heatmap_infra_diff(exp_name_to_exp_obj, tuple((key, value) for key, value in sec4_3_exp_folder_names_to_label.items()), 'sec4_3')
 
         sec4_4_exp_folder_names_to_label = {
-            'dacia_100Whpkm.zip': '100 Wh/mi',
-            'dacia_165Whpkm': '165 Wh/mi',
+            'dacia_100Whpkm.zip': '100 Wh/km',
+            'dacia_165Whpkm': '165 Wh/km',
         }
         for exp_folder_name, label in sec4_4_exp_folder_names_to_label.items():
             load_exp(exp_folder_name, exp_name_to_exp_obj)
+        infra_bar(
+            sec4_4_exp_folder_names_to_label,
+            (('AC 6.6kW', 6.6), ('AC 11.5kW', 11.5), ('DC 50kW', 50)),
+            'sec4_4'
+        )
         charging_profile(exp_name_to_exp_obj, sec4_4_exp_folder_names_to_label, 'Energy Consumption', 'sec4_4')
         heatmap_infra_diff(exp_name_to_exp_obj, tuple((key, value) for key, value in sec4_4_exp_folder_names_to_label.items()), 'sec4_4')
 
@@ -903,6 +996,11 @@ if __name__ == "__main__":
             'ioniq_hybrid_electric_1_311_44dptCO2.zip': {
                 'label': 'Compact Liftback Mixed Fleet of Hybrid ICE and Electric Vehicles, $44/tCO2',
                 'carbon_price': 44,
+                'type': ['CARBON_PRICE'],
+            },
+            'ioniq_hybrid_electric_1_311_100dptCO2.zip': {
+                'label': 'Compact Liftback Mixed Fleet of Hybrid ICE and Electric Vehicles, $100/tCO2',
+                'carbon_price': 100,
                 'type': ['CARBON_PRICE'],
             },
             'ioniq_hybrid_electric_1_311_185dptCO2.zip': {
@@ -962,11 +1060,18 @@ if __name__ == "__main__":
         cost_carbon_sensitivity(df, sec5_3_exp_folder_names_to_attributes, ['carbon_price'], 'sec5_3')
 
         sec5_4_exp_folder_names_to_label = {
-            'dacia_spring_electric': "$0/tCO2",
-            'dacia_413dptCO2.zip': "$413/tCO2",
+            # 'dacia_spring_electric': "$0/tCO2",
+            # 'dacia_413dptCO2.zip': "$413/tCO2",
+            'ioniq_hybrid_electric_1_311.zip': "$0/tCO2",
+            'ioniq_hybrid_electric_1_311_413dptCO2.zip': "$413/tCO2",
         }
         for exp_folder_name, label in sec5_4_exp_folder_names_to_label.items():
             load_exp(exp_folder_name, exp_name_to_exp_obj)
+        infra_bar(
+            sec5_4_exp_folder_names_to_label,
+            (('AC 6.6kW', 6.6), ('AC 11.5kW', 11.5), ('DC 50kW', 50)),
+            'sec5_4'
+        )
         charging_profile(exp_name_to_exp_obj, sec5_4_exp_folder_names_to_label, 'Carbon Price', 'sec5_4')
         heatmap_infra_diff(exp_name_to_exp_obj, tuple((key, value) for key, value in sec5_4_exp_folder_names_to_label.items()), 'sec5_4')
 
@@ -981,4 +1086,25 @@ if __name__ == "__main__":
         }
         for exp_folder_name, label in sup1_exp_folder_names_to_label.items():
             df = add_exp_to_df(df, exp_folder_name, label)
-        boxplot_stackedbar(df, sup1_exp_folder_names_to_label, 'sup1')
+        boxplot_stackedbar(df, sup1_exp_folder_names_to_label, 'sup1', xlabel='Vehicle Type')
+
+    if "sup2" in sections_to_plot:
+        sup2_exp_folder_names_to_label = {
+            'hyundai_ioniq_5.zip': 'Compact Crossover SUV',
+            'dacia_spring_electric': 'Crossover City Car',
+            'dacia_spring_electric_use_baseline': 'Crossover City Car,\nBaseline Charging Infrastructure',
+            'dacia_100Whpkm.zip': 'Crossover City Car,\n100 Wh/km Consumption',
+            'dacia_170Whpkm': 'Crossover City Car,\n170 Wh/km Consumption',
+            'dacia_21_583kWh': 'Crossover City Car,\n21.583 kWh Battery',
+            'dacia_34_967kWh.zip': 'Crossover City Car,\n34.967 kWh Battery',
+            'dacia_1_5kW.zip': 'Crossover City Car,\n1500 W Autonomy Stack',
+            'dacia_spring_electric_b20.zip': 'Crossover City Car,\nDemand Charge Dominant Tariff',
+        }
+        for exp_folder_name, label in sup2_exp_folder_names_to_label.items():
+            df = add_exp_to_df(df, exp_folder_name, label)
+        boxplot_stackedbar(df, sup2_exp_folder_names_to_label, 'sup2', reference_exp='dacia_spring_electric')
+        infra_bar(
+            sup2_exp_folder_names_to_label,
+            (('AC 6.6kW', 6.6), ('AC 11.5kW', 11.5), ('DC 50kW', 50), ('DC 100kW', 100), ('DC 250kW', 250)),
+            'sup2'
+        )
