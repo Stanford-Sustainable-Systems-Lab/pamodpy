@@ -55,4 +55,4 @@ INTEREST_RATE = 0.07
 EVSE_LIFESPAN = 10                                                      # [yrs]
 
 TONS_CO2_PER_GAL_GAS = 0.008887
-KWH_PER_GAL_GAS = 33.7
+GAL_GAS_PER_KWH_ELEC = 0.1 # [gal/kWh]
